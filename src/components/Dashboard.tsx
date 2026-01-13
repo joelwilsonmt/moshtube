@@ -116,6 +116,14 @@ export function Dashboard() {
                             <Zap size={16} fill="currentColor" />
                             Mosh
                         </button>
+
+                         <button 
+                            onClick={() => moshEverything()}
+                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white rounded-xl font-bold text-sm shadow-lg transition-all hover:scale-105 active:scale-95"
+                        >
+                            <Zap size={16} fill="currentColor" />
+                            <span className="whitespace-nowrap">Mosh Everything</span>
+                        </button>
                         
                         <div className="w-px h-8 bg-white/10 mx-1" />
 
