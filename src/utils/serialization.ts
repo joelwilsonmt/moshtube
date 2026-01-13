@@ -28,6 +28,7 @@ export function serializeState(state: AppState): URLSearchParams {
   // Global
   params.set('mix', state.mix.toFixed(2))
   params.set('blend', state.blendMode)
+  params.set('overlay', state.activeOverlay)
   
   return params
 }
@@ -55,13 +56,15 @@ export function deserializeState(params: URLSearchParams): Partial<AppState> {
   if (params.has('b_li')) sB.lastInteraction = parseFloat(params.get('b_li')!)
 
   // Global
-  const mix = params.has('mix') ? parseFloat(params.get('mix')!) : 0.5
-  const blendMode = params.has('blend') ? params.get('blend') as any : 'normal'
+  const mix = params.has('mix') ? parseFloat(params.get('mix')!) : defaultState.mix
+  const blendMode = params.has('blend') ? params.get('blend') as any : defaultState.blendMode
+  const activeOverlay = params.has('overlay') ? params.get('overlay') as any : defaultState.activeOverlay
 
   return {
       videoA: sA,
       videoB: sB,
       mix,
-      blendMode
+      blendMode,
+      activeOverlay
   }
 }
