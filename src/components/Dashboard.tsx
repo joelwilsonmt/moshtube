@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { useStore } from 'zustand'
-import { appStore, setBlendMode, setMix, setOutputPlaying, setMixOscillate } from '../store/appStore'
+import { appStore, setBlendMode, setMix, setOutputPlaying, setMixOscillate, setActiveOverlay } from '../store/appStore'
 import { VideoControlPanel } from './VideoControlPanel'
 import { Stage } from './Stage' 
 import { BlendModeSchema } from '../store/schema'
@@ -15,6 +15,7 @@ export function Dashboard() {
   const blendMode = useStore(appStore, s => s.blendMode)
   const mix = useStore(appStore, s => s.mix)
   const mixOscillate = useStore(appStore, s => s.mixOscillate)
+  const activeOverlay = useStore(appStore, s => s.activeOverlay) || 'videoB'
   const outputPlaying = useStore(appStore, s => s.outputPlaying)
   const blendOptions = BlendModeSchema.options
 
@@ -182,26 +183,48 @@ export function Dashboard() {
       <footer className="h-24 border-t border-zinc-800 px-6 shrink-0 bg-zinc-900/30 flex items-center">
         <div className="grid grid-cols-3 gap-8 w-full max-w-6xl mx-auto items-center">
             
-            <div className="flex items-center gap-4">
-                <Label className="whitespace-nowrap font-bold text-zinc-400">Blend Mode</Label>
-                <select 
-                    value={blendMode}
-                    onChange={(e) => setBlendMode(e.target.value as any)}
-                    className="flex-1 bg-zinc-950 border border-zinc-800 rounded-md p-2 text-sm focus:ring-1 focus:ring-green-500 outline-none"
+            <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-4">
+                    <Label className="whitespace-nowrap font-bold text-zinc-400 w-20">Blend Mode</Label>
+                    <select 
+                        value={blendMode}
+                        onChange={(e) => setBlendMode(e.target.value as any)}
+                        className="flex-1 bg-zinc-950 border border-zinc-800 rounded-md p-1.5 text-sm focus:ring-1 focus:ring-green-500 outline-none"
+                    >
+                        {blendOptions.map(m => {
+                            let desc = ''
+                            switch(m) {
+                                case 'normal': desc = '(Standard)'; break;
+                                case 'multiply': desc = '(Darker)'; break;
+                                case 'screen': desc = '(Brighter)'; break;
+                                case 'overlay': desc = '(Contrast)'; break;
+                                case 'difference': desc = '(Invert)'; break;
+                                case 'exclusion': desc = '(Soft Invert)'; break;
+                            }
+                            return <option key={m} value={m}>{m.toUpperCase()} {desc}</option>
+                        })}
+                    </select>
+                </div>
+
+                <div 
+                    className={`flex items-center gap-4 overflow-hidden transition-all duration-500 ease-out ${blendMode === 'overlay' ? 'max-h-10 opacity-100' : 'max-h-0 opacity-0'}`}
                 >
-                    {blendOptions.map(m => {
-                        let desc = ''
-                        switch(m) {
-                            case 'normal': desc = '(Standard)'; break;
-                            case 'multiply': desc = '(Darker)'; break;
-                            case 'screen': desc = '(Brighter)'; break;
-                            case 'overlay': desc = '(Contrast)'; break;
-                            case 'difference': desc = '(Invert)'; break;
-                            case 'exclusion': desc = '(Soft Invert)'; break;
-                        }
-                        return <option key={m} value={m}>{m.toUpperCase()} {desc}</option>
-                    })}
-                </select>
+                     <Label className="whitespace-nowrap font-bold text-zinc-400 w-20">Layer Order</Label>
+                     <div className="flex bg-zinc-950 rounded-md border border-zinc-800 p-0.5 flex-1">
+                         <button 
+                            onClick={() => setActiveOverlay('videoA')}
+                            className={`flex-1 py-1 text-xs font-bold rounded transition-colors ${activeOverlay === 'videoA' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                         >
+                            A on Top
+                         </button>
+                         <button 
+                            onClick={() => setActiveOverlay('videoB')}
+                            className={`flex-1 py-1 text-xs font-bold rounded transition-colors ${activeOverlay === 'videoB' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                         >
+                            B on Top
+                         </button>
+                     </div>
+                </div>
             </div>
 
             <div className="space-y-2">

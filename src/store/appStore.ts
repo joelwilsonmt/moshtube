@@ -18,16 +18,11 @@ export function setMix(value: number) {
   appStore.setState((state) => ({ ...state, mix: value }))
 }
 
-export function setMixOscillate(oscillate: boolean) {
-  appStore.setState((state) => ({ ...state, mixOscillate: oscillate }))
-}
+export const setMixOscillate = (val: boolean) => appStore.setState({ mixOscillate: val })
 
 export function setPlaying(target: 'videoA' | 'videoB', playing: boolean) {
   updateVideoState(target, { playing })
 }
 
-export function setOutputPlaying(playing: boolean) {
-  appStore.setState((state) => ({ ...state, outputPlaying: playing }))
-}
-
-
+export const setActiveOverlay = (id: 'videoA' | 'videoB') => appStore.setState({ activeOverlay: id })
+export const setOutputPlaying = (playing: boolean) => appStore.setState({ outputPlaying: playing })

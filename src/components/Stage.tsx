@@ -266,18 +266,22 @@ function Layer({ id, className = '', style }: LayerProps) {
 export function Stage() {
     const blendMode = useStore(appStore, s => s.blendMode)
     const mix = useStore(appStore, s => s.mix)
+    const activeOverlay = useStore(appStore, s => s.activeOverlay) || 'videoB'
+
+    const bottomId = activeOverlay === 'videoA' ? 'videoB' : 'videoA'
+    const topId = activeOverlay
 
     return (
         <div className="relative w-full h-full bg-black overflow-hidden group">
-            {/* Layer A (Bottom) */}
+            {/* Bottom Layer */}
             <Layer 
-                id="videoA" 
+                id={bottomId} 
                 className="z-0"
             />
             
-            {/* Layer B (Top) - CSS Blended */}
+            {/* Top Layer (Overlay) */}
             <Layer 
-                id="videoB" 
+                id={topId} 
                 className="z-10"
                 style={{ 
                     mixBlendMode: blendMode as any, 

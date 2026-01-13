@@ -50,6 +50,7 @@ export const AppStateSchema = z.object({
   blendMode: BlendModeSchema.default('normal'),
   mix: z.number().min(0).max(1).default(0.5), // Top layer opacity
   mixOscillate: z.boolean().default(false),
+  activeOverlay: z.enum(['videoA', 'videoB']).default('videoB'),
   masterShader: ShaderTypeSchema.default('none'),
   masterShaderParams: z.record(z.string(), z.number()).default({}),
   outputPlaying: z.boolean().default(true), // Master render loop
@@ -60,11 +61,12 @@ export type BlendMode = z.infer<typeof BlendModeSchema>
 export type AppState = z.infer<typeof AppStateSchema>
 
 export const defaultState: AppState = {
-  videoA: { id: 'LlG9yYW6Bi8', start: 0, end: 10, duration: 100, loop: true, playing: true, shader: 'none', shaderParams: {}, lastInteraction: 0, oscillate: false }, // New default A
-  videoB: { id: 'lBE-EzFh9nk', start: 0, end: 10, duration: 100, loop: true, playing: true, shader: 'none', shaderParams: {}, lastInteraction: 0, oscillate: false }, // New default B
+  videoA: { id: '-Pail6FITXc', start: 0, end: 10, duration: 100, loop: true, playing: true, shader: 'none', shaderParams: {}, lastInteraction: 0, oscillate: false }, // New default A
+  videoB: { id: 'KM9ptQ2Tz3s', start: 0, end: 10, duration: 100, loop: true, playing: true, shader: 'none', shaderParams: {}, lastInteraction: 0, oscillate: false }, // New default B
   blendMode: 'normal',
   mix: 0.5,
   mixOscillate: false,
+  activeOverlay: 'videoB',
   masterShader: 'none',
   masterShaderParams: {},
   outputPlaying: true
