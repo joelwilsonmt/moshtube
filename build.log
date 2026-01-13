@@ -1,0 +1,166 @@
+$ vinxi build
+vinxi v0.5.10
+[@tanstack/start] Warning: This package has moved to @tanstack/react-start. Please switch to the new package, as this package will be dropped soon.
+
+
+⚙  Building your app...
+vinxi v0.5.10
+[@tanstack/start] Warning: This package has moved to @tanstack/react-start. Please switch to the new package, as this package will be dropped soon.
+
+
+⚙ Building your router client...
+
+
+📦 Compiling client router...
+vinxi building router client in client mode
+
+♻️  Generating routes...
+✅ Processed route in 50ms
+vite v6.4.1 building for production...
+transforming...
+✓ 258 modules transformed.
+✗ Build failed in 717ms
+Error building router client: app/routes/__root.tsx (2:9): "Meta" is not exported by "node_modules/@tanstack/start/dist/esm/client.js", imported by "app/routes/__root.tsx".
+file: /Users/publius/Code/moshtube/app/routes/__root.tsx:2:9
+
+1: import { Outlet, createRootRoute } from '@tanstack/react-router'
+2: import { Meta, Scripts } from '@tanstack/start'
+            ^
+3: import type { ReactNode } from 'react'
+4: import appCss from '~/styles/app.css?url'
+
+    at getRollupError (file:///Users/publius/Code/moshtube/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///Users/publius/Code/moshtube/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at Module.error (file:///Users/publius/Code/moshtube/node_modules/rollup/dist/es/shared/node-entry.js:17022:16)
+    at Module.traceVariable (file:///Users/publius/Code/moshtube/node_modules/rollup/dist/es/shared/node-entry.js:17478:29)
+    at ModuleScope.findVariable (file:///Users/publius/Code/moshtube/node_modules/rollup/dist/es/shared/node-entry.js:15141:39)
+    at FunctionScope.findVariable (file:///Users/publius/Code/moshtube/node_modules/rollup/dist/es/shared/node-entry.js:5688:38)
+    at FunctionBodyScope.findVariable (file:///Users/publius/Code/moshtube/node_modules/rollup/dist/es/shared/node-entry.js:5688:38)
+    at Identifier.bind (file:///Users/publius/Code/moshtube/node_modules/rollup/dist/es/shared/node-entry.js:5462:40)
+    at CallExpression.bind (file:///Users/publius/Code/moshtube/node_modules/rollup/dist/es/shared/node-entry.js:2825:28)
+    at CallExpression.bind (file:///Users/publius/Code/moshtube/node_modules/rollup/dist/es/shared/node-entry.js:12172:15) {
+  binding: 'Meta',
+  code: 'MISSING_EXPORT',
+  exporter: '/Users/publius/Code/moshtube/node_modules/@tanstack/start/dist/esm/client.js',
+  id: '/Users/publius/Code/moshtube/app/routes/__root.tsx',
+  url: 'https://rollupjs.org/troubleshooting/#error-name-is-not-exported-by-module',
+  pos: 122,
+  loc: {
+    column: 9,
+    file: '/Users/publius/Code/moshtube/app/routes/__root.tsx',
+    line: 2
+  },
+  frame: "1: import { Outlet, createRootRoute } from '@tanstack/react-router'\n" +
+    "2: import { Meta, Scripts } from '@tanstack/start'\n" +
+    '            ^\n' +
+    "3: import type { ReactNode } from 'react'\n" +
+    "4: import appCss from '~/styles/app.css?url'",
+  watchFiles: [
+    '/Users/publius/Code/moshtube/app/client.tsx',
+    '/Users/publius/Code/moshtube/package.json',
+    '/Users/publius/Code/moshtube/app/router.tsx',
+    '/Users/publius/Code/moshtube/node_modules/react-dom/client.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/start/dist/esm/client.js',
+    '/Users/publius/Code/moshtube/node_modules/react/jsx-runtime.js',
+    '/Users/publius/Code/moshtube/app/routeTree.gen.ts',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-start-client/dist/esm/index.js',
+    '/Users/publius/Code/moshtube/node_modules/react/cjs/react-jsx-runtime.production.js',
+    '/Users/publius/Code/moshtube/node_modules/react-dom/cjs/react-dom-client.production.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/index.js',
+    '/Users/publius/Code/moshtube/app/routes/__root.tsx',
+    '/Users/publius/Code/moshtube/app/routes/index.tsx',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-start-client/dist/esm/StartClient.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-start-client/dist/esm/hydrateStart.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-start-client/dist/esm/renderRSC.js',
+    '/Users/publius/Code/moshtube/node_modules/react/index.js',
+    '/Users/publius/Code/moshtube/node_modules/react-dom/index.js',
+    '/Users/publius/Code/moshtube/node_modules/scheduler/index.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/link.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/lazyRouteComponent.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/awaited.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/Matches.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/matchContext.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/fileRoute.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/ClientOnly.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/CatchBoundary.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/useMatch.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/useLoaderDeps.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/router.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/ScrollRestoration.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/useBlocker.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/useNavigate.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/useParams.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/useLoaderData.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/routerContext.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/useSearch.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/Match.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/RouterProvider.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/useRouterState.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/useCanGoBack.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/useRouter.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/utils.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/route.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/not-found.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/ScriptOnce.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/useLocation.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/Asset.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/HeadContent.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/useRouteContext.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/router-core/dist/esm/index.js',
+    '/Users/publius/Code/moshtube/node_modules/tiny-warning/dist/tiny-warning.esm.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/history/dist/esm/index.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/Scripts.js',
+    '/Users/publius/Code/moshtube/node_modules/tiny-invariant/dist/esm/tiny-invariant.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/start-client-core/dist/esm/client/index.js',
+    '/Users/publius/Code/moshtube/node_modules/react-dom/cjs/react-dom.production.js',
+    '/Users/publius/Code/moshtube/node_modules/scheduler/cjs/scheduler.production.js',
+    '/Users/publius/Code/moshtube/node_modules/react/cjs/react.production.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/Transitioner.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/renderRouteNotFound.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/SafeFragment.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/dist/esm/scroll-restoration.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/router-core/dist/esm/defer.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/node_modules/@tanstack/react-store/dist/esm/index.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/router-core/dist/esm/Matches.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/router-core/dist/esm/link.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/router-core/dist/esm/qss.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/router-core/dist/esm/root.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/router-core/dist/esm/searchMiddleware.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/router-core/dist/esm/searchParams.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/router-core/dist/esm/route.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/router-core/dist/esm/redirect.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/router-core/dist/esm/not-found.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/router-core/dist/esm/router.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/router-core/dist/esm/scroll-restoration.js',
+    '/Users/publius/Code/moshtube/app/styles/app.css',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/router-core/dist/esm/utils.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/router-core/dist/esm/path.js',
+    '/Users/publius/Code/moshtube/node_modules/jsesc/jsesc.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/start-client-core/dist/esm/client/hydrateStart.js',
+    '/Users/publius/Code/moshtube/app/hooks/useUrlState.ts',
+    '/Users/publius/Code/moshtube/app/hooks/useVideoProcessor.ts',
+    '/Users/publius/Code/moshtube/app/lib/webgl/Renderer.ts',
+    '/Users/publius/Code/moshtube/app/lib/webgl/ShaderLibrary.ts',
+    '/Users/publius/Code/moshtube/app/store/appStore.ts',
+    '/Users/publius/Code/moshtube/app/store/schema.ts',
+    '/Users/publius/Code/moshtube/app/utils/serialization.ts',
+    '/Users/publius/Code/moshtube/app/components/Dashboard.tsx',
+    '/Users/publius/Code/moshtube/app/components/HiddenPlayer.tsx',
+    '/Users/publius/Code/moshtube/app/components/VideoControlPanel.tsx',
+    '/Users/publius/Code/moshtube/app/components/ui/core.tsx',
+    '/Users/publius/Code/moshtube/app/ssr.tsx',
+    '/Users/publius/Code/moshtube/tailwind.config.ts',
+    '/Users/publius/Code/moshtube/node_modules/use-sync-external-store/shim/with-selector.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/node_modules/@tanstack/react-store/node_modules/@tanstack/store/dist/esm/index.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/start-client-core/dist/esm/client/ServerFunctionSerializationAdapter.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/start-client-core/node_modules/@tanstack/router-core/dist/esm/ssr/client.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/start-client-core/dist/esm/fake-start-entry.js',
+    '/Users/publius/Code/moshtube/node_modules/@tanstack/react-router/node_modules/@tanstack/react-store/node_modules/@tanstack/store/dist/esm/store.js',
+    ... 136 more items
+  ],
+  Symbol(augmented): true
+}
+Error building router client: Error: Exited with code: 1
+    at CommandChild.pipedStdoutBuffer (file:///Users/publius/Code/moshtube/node_modules/dax-sh/esm/mod.js:8476:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+error: script "build" exited with code 1
