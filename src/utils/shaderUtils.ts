@@ -17,8 +17,7 @@ export const getShaderConfig = (shader: string): ShaderConfig => {
 
         case 'glow': return { label: 'Glow Radius', min: 0, max: 20, step: 1, default: 10 }
         case 'glitch': return { label: 'Tear Amount', min: 0, max: 100, step: 1, default: 30 }
-        case 'cartoon': return { label: 'Edge Thickness', min: 0.5, max: 5, step: 0.1, default: 2 }
-
+        
         case 'ink': return { label: 'Contrast', min: 1, max: 5, step: 0.1, default: 3 }
         case 'predator': return { label: 'Heat Shift', min: 0, max: 360, step: 10, default: 180 }
         case 'solarize': return { label: 'Threshold', min: 0, max: 100, step: 1, default: 50 }

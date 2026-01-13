@@ -6,7 +6,7 @@ import { Stage } from './Stage'
 import { BlendModeSchema } from '../store/schema'
 import { Slider, Label } from './ui/core'
 import { Play, Pause, Maximize, Minimize, Zap, Sparkles } from 'lucide-react'
-import { moshGlobal, moshMeDaddy } from '../utils/mosh'
+import { moshGlobal, moshMeDaddy, moshEverything } from '../utils/mosh'
 
 import { HiddenPlayer } from './HiddenPlayer'
 import { IDLE_TIMEOUT_MS } from '../utils/config'
@@ -232,21 +232,32 @@ export function Dashboard() {
                     <Label className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Master Mix</Label>
                     <span className="text-xs font-mono text-zinc-300">{mix.toFixed(2)}</span>
                 </div>
-                <Slider 
-                    min={0} max={1} step={0.01}
-                    value={mix}
-                    onChange={(e) => setMix(parseFloat(e.target.value))}
-                    className="py-1"
-                />
-                 <label className="flex items-center gap-2 text-xs text-zinc-400 cursor-pointer hover:text-zinc-200 select-none justify-center pt-1">
-                    <input 
-                        type="checkbox" 
-                        checked={mixOscillate}
-                        onChange={(e) => setMixOscillate(e.target.checked)}
-                        className="accent-green-500 rounded bg-zinc-800 border-zinc-700"
+                
+                <div className="flex items-center gap-4">
+                    <Slider 
+                        min={0} max={1} step={0.01}
+                        value={mix}
+                        onChange={(e) => setMix(parseFloat(e.target.value))}
+                        className="flex-1 py-1"
                     />
-                    Oscillate (10s)
-                </label>
+                    <label className="flex items-center gap-2 text-xs text-zinc-400 cursor-pointer hover:text-zinc-200 select-none shrink-0 rounded px-2 py-1 bg-zinc-950/50">
+                        <input 
+                            type="checkbox" 
+                            checked={mixOscillate}
+                            onChange={(e) => setMixOscillate(e.target.checked)}
+                            className="accent-green-500 rounded bg-zinc-800 border-zinc-700 w-3.5 h-3.5"
+                        />
+                        Oscillate
+                    </label>
+                </div>
+
+                 <button
+                    onClick={() => moshEverything()}
+                    className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 mt-1 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 rounded text-xs font-bold text-white shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                    <Zap size={12} fill="currentColor" />
+                    MOSH EVERYTHING
+                </button>
             </div>
 
             <div className="flex justify-end">

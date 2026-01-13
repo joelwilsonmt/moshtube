@@ -1,5 +1,5 @@
-import { updateVideoState } from '../store/appStore'
-import { ShaderTypeSchema } from '../store/schema'
+import { updateVideoState, setBlendMode, setMix, setMixOscillate } from '../store/appStore'
+import { ShaderTypeSchema, BlendModeSchema } from '../store/schema'
 import { getShaderConfig } from './shaderUtils'
 import { SOURCE_A_IDS, SOURCE_B_IDS } from './sourceLists'
 
@@ -22,6 +22,16 @@ export const moshVideo = (id: 'videoA' | 'videoB') => {
 export const moshGlobal = () => {
     moshVideo('videoA')
     moshVideo('videoB')
+}
+
+export const moshEverything = () => {
+    moshGlobal()
+    
+    const blendOptions = BlendModeSchema.options
+    setBlendMode(blendOptions[Math.floor(Math.random() * blendOptions.length)])
+    
+    setMix(Math.random())
+    setMixOscillate(Math.random() > 0.5)
 }
 
 export const moshMeDaddy = () => {
@@ -49,5 +59,5 @@ export const moshMeDaddy = () => {
     })
     
     // Apply Effects
-    moshGlobal()
+    moshEverything()
 }

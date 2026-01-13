@@ -10,7 +10,6 @@ export const ShaderTypeSchema = z.enum([
   'pixelate',
   'glow',
   'glitch',
-  'cartoon',
   'ink',
   'predator',
   'solarize',

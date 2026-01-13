@@ -33,7 +33,6 @@ const getCssFilter = (shader: string, params: Record<string, number>, layerId: s
             return 'contrast(120%) brightness(110%)'
 
         case 'glitch': return `url(#${layerId}-glitch)`
-        case 'cartoon': return `url(#${layerId}-cartoon)`
 
         case 'ink': 
              const contrast = i ?? 3
@@ -246,17 +245,6 @@ function Layer({ id, className = '', style }: LayerProps) {
                         <feTurbulence type="turbulence" baseFrequency="0.5 0.05" numOctaves="2" result="noise" />
                         <feDisplacementMap in="SourceGraphic" in2="noise" scale={shader === 'glitch' ? (shaderParams.intensity ?? 30) : 0} />
                     </filter>
-
-                    <filter id={`${id}-cartoon`}>
-                         {/* "Neon Edges" Style: Dilate minus Erode */}
-                        <feMorphology operator="dilate" radius={shader === 'cartoon' ? (shaderParams.intensity ?? 2) : 0} in="SourceGraphic" result="thick"/>
-                        <feMorphology operator="erode" radius={shader === 'cartoon' ? (shaderParams.intensity ?? 2) : 0} in="SourceGraphic" result="thin"/>
-                        <feComposite in="thick" in2="thin" operator="out" result="outline"/>
-                        {/* Overlay edges on top of original video to fix "black box" issue */}
-                        <feComposite in="outline" in2="SourceGraphic" operator="over" />
-                    </filter>
-
-
                 </defs>
             </svg>
         </div>

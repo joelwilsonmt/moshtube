@@ -22,20 +22,23 @@ function ShaderControls({ shader, params, check, onChange, onCheck }: { shader: 
                 <Label>{config.label}</Label>
                 <span className="text-xs font-mono">{val.toFixed(2)}</span>
             </div>
-             <Slider 
-                min={config.min} max={config.max} step={config.step}
-                value={val}
-                onChange={(e) => onChange({ intensity: parseFloat(e.target.value) })}
-            />
-             <label className="flex items-center gap-2 text-xs mt-2 text-zinc-400 cursor-pointer hover:text-zinc-200 select-none">
-                <input 
-                    type="checkbox" 
-                    checked={check}
-                    onChange={(e) => onCheck(e.target.checked)}
-                    className="accent-green-500 rounded bg-zinc-800 border-zinc-700"
+            <div className="flex items-center gap-2">
+                 <Slider 
+                    min={config.min} max={config.max} step={config.step}
+                    value={val}
+                    onChange={(e) => onChange({ intensity: parseFloat(e.target.value) })}
+                    className="flex-1"
                 />
-                Oscillate (10s)
-            </label>
+                 <label className="flex items-center gap-2 text-xs text-zinc-400 cursor-pointer hover:text-zinc-200 select-none shrink-0 px-2 py-1 bg-zinc-950/50 rounded">
+                    <input 
+                        type="checkbox" 
+                        checked={check}
+                        onChange={(e) => onCheck(e.target.checked)}
+                        className="accent-green-500 rounded bg-zinc-800 border-zinc-700 w-3.5 h-3.5"
+                    />
+                    Oscillate
+                </label>
+            </div>
         </div>
     )
 }
