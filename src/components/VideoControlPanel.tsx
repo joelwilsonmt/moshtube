@@ -71,6 +71,7 @@ export function VideoControlPanel({ id, title }: Props) {
   }
 
   return (
+    <>
     <div className="p-4 bg-zinc-900 border border-zinc-800 rounded mb-4">
       <h3 className="font-bold text-lg mb-4 flex justify-between items-center">
           {title}
@@ -208,6 +209,6 @@ export function VideoControlPanel({ id, title }: Props) {
           </div>
       </div>
     </div>
-
+    </>
   )
 }
