@@ -5,7 +5,7 @@ import { VideoControlPanel } from './VideoControlPanel'
 import { Stage } from './Stage' 
 import { BlendModeSchema } from '../store/schema'
 import { Slider, Label } from './ui/core'
-import { Play, Pause, Maximize, Minimize, Zap, Sparkles } from 'lucide-react'
+import { Play, Pause, Maximize, Minimize, Zap, Sparkles, Github } from 'lucide-react'
 import { moshGlobal, moshMeDaddy, moshEverything } from '../utils/mosh'
 
 import { HiddenPlayer } from './HiddenPlayer'
@@ -188,7 +188,7 @@ export function Dashboard() {
       </div>
 
       {/* Bottom Master Controls */}
-      <footer className="h-24 border-t border-zinc-800 px-6 shrink-0 bg-zinc-900/30 flex items-center">
+      <footer className="relative h-24 border-t border-zinc-800 px-6 shrink-0 bg-zinc-900/30 flex items-center">
         <div className="grid grid-cols-3 gap-8 w-full max-w-6xl mx-auto items-center">
             
             <div className="flex flex-col gap-3">
@@ -278,6 +278,16 @@ export function Dashboard() {
                  </button>
             </div>
         </div>
+
+        <a 
+            href="https://github.com/joelwilsonmt/moshtube" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="absolute bottom-2 right-4 flex items-center gap-1.5 text-zinc-600 hover:text-zinc-400 transition-colors group"
+        >
+            <Github size={14} />
+            <span className="text-[10px] font-medium group-hover:underline">joelwilsonmt/moshtube</span>
+        </a>
       </footer>
     </div>
   )
