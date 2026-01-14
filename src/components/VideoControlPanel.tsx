@@ -1,6 +1,7 @@
 import { useStore } from 'zustand'
 import { appStore, updateVideoState } from '../store/appStore'
 import { Input, Label, Slider } from './ui/core'
+import { DualRangeSlider } from './ui/DualRangeSlider'
 import { ShaderTypeSchema } from '../store/schema'
 import { Play, Pause, Zap, Shuffle } from 'lucide-react'
 import { getShaderConfig } from '../utils/shaderUtils'
@@ -90,103 +91,123 @@ export function VideoControlPanel({ id, title }: Props) {
           </div>
       </h3>
       
-      <div className="space-y-4">
-        <Label>YouTube ID / URL</Label>
-        <div className="flex gap-2">
-            <Input 
-              value={state.id || ''} 
-              onChange={(e) => handleIdChange(e.target.value)}
-              placeholder="Video ID or URL"
-              className="flex-1 font-mono text-xs"
-            />
-            <button 
-                onClick={handleRandom}
-                className="p-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded transition-colors"
-                title="Random Suggested Video"
-            >
-                <Shuffle size={16} />
-            </button>
-        </div>
-      </div>
-
       <div className="space-y-2">
-        <Label>Shader Effect</Label>
-        <select 
-          className="w-full bg-zinc-950 border border-zinc-800 rounded-md p-2 text-sm"
-          value={state.shader}
-          onChange={(e) => updateVideoState(id, { shader: e.target.value as any })}
-        >
-          {shaderOptions.map(opt => (
-            <option key={opt} value={opt}>{opt.toUpperCase()}</option>
-          ))}
-        </select>
-        
-        {state.shader !== 'none' && (
-            <ShaderControls 
-                shader={state.shader} 
-                params={state.shaderParams} 
-                check={!!state.oscillate}
-                onChange={(p) => update({ shaderParams: { ...state.shaderParams, ...p } })} 
-                onCheck={(v) => update({ oscillate: v })}
-            />
-        )}
-
-        <div className="space-y-4">
-            <div className="flex justify-between">
-                <Label>Loop Start</Label>
-                 <span className="text-xs font-mono">{state.start.toFixed(1)}s</span>
-            </div>
-            <Slider 
-                min={0} max={state.duration || 100} step={0.1}
-                value={state.start}
-                onChange={(e) => {
-                    const val = parseFloat(e.target.value)
-                    if (val < state.end) update({ start: val })
-                }}
-            />
-            <Input
-                type="number"
-                min={0} max={state.duration || 100} step={0.01}
-                value={state.start}
-                onChange={(e) => {
-                    const val = parseFloat(e.target.value)
-                    if (val < state.end) update({ start: val })
-                }}
-                className="mt-1 mb-3 font-mono"
-            />
-            
-             <div className="flex justify-between">
-                <Label>Loop End</Label>
-                 <span className="text-xs font-mono">{state.end.toFixed(1)}s</span>
-            </div>
-            <Slider 
-                min={0} max={state.duration || 100} step={0.1}
-                value={state.end}
-                onChange={(e) => {
-                    const val = parseFloat(e.target.value)
-                    if (val > state.start) update({ end: val })
-                }}
-            />
-            <Input
-                type="number"
-                min={0} max={state.duration || 100} step={0.01}
-                value={state.end}
-                onChange={(e) => {
-                    const val = parseFloat(e.target.value)
-                    if (val > state.start) update({ end: val })
-                }}
-                className="mt-1 mb-2 font-mono"
-            />
-             <label className="flex items-center gap-2 text-sm">
-                <input 
-                    type="checkbox" 
-                    checked={state.loop}
-                    onChange={(e) => update({ loop: e.target.checked })}
+          {/* YouTube ID Section */}
+          <div className="p-3 border border-zinc-800 rounded-md bg-zinc-950/30 space-y-2">
+            <Label>YouTube ID / URL</Label>
+            <div className="flex gap-2">
+                <Input 
+                  value={state.id || ''} 
+                  onChange={(e) => handleIdChange(e.target.value)}
+                  placeholder="Video ID or URL"
+                  className="flex-1 font-mono text-xs"
                 />
-                Loop Enabled
-            </label>
-        </div>
+                <button 
+                    onClick={handleRandom}
+                    className="p-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded transition-colors"
+                    title="Random Suggested Video"
+                >
+                    <Shuffle size={16} />
+                </button>
+            </div>
+          </div>
+
+          {/* Shader Section */}
+          <div className="p-3 border border-zinc-800 rounded-md bg-zinc-950/30 space-y-2">
+            <Label>Shader Effect</Label>
+            <select 
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-md p-2 text-sm"
+              value={state.shader}
+              onChange={(e) => updateVideoState(id, { shader: e.target.value as any })}
+            >
+              {shaderOptions.map(opt => (
+                <option key={opt} value={opt}>{opt.toUpperCase()}</option>
+              ))}
+            </select>
+            
+            {state.shader !== 'none' && (
+                <ShaderControls 
+                    shader={state.shader} 
+                    params={state.shaderParams} 
+                    check={!!state.oscillate}
+                    onChange={(p) => update({ shaderParams: { ...state.shaderParams, ...p } })} 
+                    onCheck={(v) => update({ oscillate: v })}
+                />
+            )}
+          </div>
+
+          {/* Loop Section */}
+          <div className="p-3 border border-zinc-800 rounded-md bg-zinc-950/30 space-y-2">
+                <div className="flex justify-between items-end">
+                    <Label>Loop Region</Label>
+                    <div className="flex gap-4 text-xs font-mono text-zinc-400">
+                        <span>{state.start.toFixed(1)}s</span>
+                        <span>-</span>
+                        <span>{state.end.toFixed(1)}s</span>
+                    </div>
+                </div>
+                
+                <DualRangeSlider
+                    min={0}
+                    max={state.duration || 100}
+                    step={0.1}
+                    value={[state.start, state.end]}
+                    onChange={([newStart, newEnd]) => {
+                        const updates: any = { start: newStart, end: newEnd }
+                        // Trigger seek only if start time changed
+                        if (newStart !== state.start) {
+                            updates.seek = { time: newStart, trigger: Date.now() }
+                        }
+                        update(updates)
+                    }}
+                />
+
+                <div className="flex gap-2">
+                    <div className="flex-1 space-y-1">
+                        <Label className="text-xs text-zinc-500">Start</Label>
+                        <Input
+                            type="number"
+                            min={0} max={state.duration || 100} step={0.01}
+                            value={state.start}
+                            onChange={(e) => {
+                                const val = parseFloat(e.target.value)
+                                if (!isNaN(val) && val < state.end) {
+                                   update({ 
+                                       start: val,
+                                       seek: { time: val, trigger: Date.now() }
+                                   })
+                                }
+                            }}
+                            className="font-mono text-xs"
+                        />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                        <Label className="text-xs text-zinc-500">End</Label>
+                        <Input
+                            type="number"
+                            min={0} max={state.duration || 100} step={0.01}
+                            value={state.end}
+                            onChange={(e) => {
+                                const val = parseFloat(e.target.value)
+                                if (!isNaN(val) && val > state.start) update({ end: val })
+                            }}
+                            className="font-mono text-xs"
+                        />
+                    </div>
+                </div>
+
+                <label className="flex items-center gap-2 text-sm pt-1">
+                    <input 
+                        type="checkbox" 
+                        checked={state.loop}
+                        onChange={(e) => update({ loop: e.target.checked })}
+                        className="accent-zinc-100 bg-zinc-800 border-zinc-700 rounded w-4 h-4"
+                    />
+                    Loop Enabled
+                </label>
+          </div>
+      </div>
     </div>
-    </div>
+
   )
 }

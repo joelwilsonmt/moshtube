@@ -31,6 +31,16 @@ export function HiddenPlayer({ id }: Props) {
     return () => clearInterval(interval)
   }, [state.loop, state.start, state.end])
 
+  // Listen for Seek Events (from Control Panel)
+  useEffect(() => {
+      if (!playerRef.current || !state.seek) return
+      // Prevent internal seek loop if we just broadcasted it? 
+      // Actually, checking if time is significantly different or relying on trigger.
+      // Since `seek` is an object with a timestamp trigger, we can just effect on that.
+      playerRef.current.seekTo(state.seek.time, true)
+      setCurrentTime(state.seek.time)
+  }, [state.seek?.trigger])
+
   const handleSeek = (val: number) => {
       setCurrentTime(val)
       playerRef.current?.seekTo(val, true)
