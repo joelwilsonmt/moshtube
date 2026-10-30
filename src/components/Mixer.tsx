@@ -17,10 +17,10 @@ import { MoshCluster } from './MoshCluster'
 import { MediaView, PatternCanvas } from './OverlayLayer'
 
 export const LAYER = {
-    videoA: { letter: 'A', name: 'Source A', bg: 'bg-layer-a', text: 'text-layer-a', token: '--layer-a' },
-    videoB: { letter: 'B', name: 'Source B', bg: 'bg-layer-b', text: 'text-layer-b', token: '--layer-b' },
-    overlay: { letter: 'C', name: 'Layer C', bg: 'bg-layer-c', text: 'text-layer-c', token: '--layer-c' },
-    master: { letter: 'M', name: 'Master', bg: 'bg-layer-m', text: 'text-layer-m', token: '--layer-m' },
+    videoA: { letter: 'A', name: 'Source A', bg: 'bg-layer-a', token: '--layer-a' },
+    videoB: { letter: 'B', name: 'Source B', bg: 'bg-layer-b', token: '--layer-b' },
+    overlay: { letter: 'C', name: 'Layer C', bg: 'bg-layer-c', token: '--layer-c' },
+    master: { letter: 'M', name: 'Master', bg: 'bg-layer-m', token: '--layer-m' },
 } as const
 
 export const BLEND_LABELS: Record<AppState['blendMode'], string> = {
