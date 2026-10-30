@@ -1,287 +1,204 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect } from 'react'
 import { useStore } from 'zustand'
 import YouTube, { YouTubeProps, YouTubePlayer } from 'react-youtube'
 import { appStore, updateVideoState } from '../store/appStore'
-import { getShaderConfig } from '../utils/shaderUtils'
+import type { AppState, SourceId, VideoState } from '../store/schema'
+import { applyFx, FxDefs, wave } from '../fx/effects'
+import { beatsNow } from '../engine/clock'
+import { registerPlayer } from '../engine/players'
 import { handlePlayerError } from '../utils/youtube'
 
-// Map "Shader" names to CSS Filters
-const getPosterizeSteps = (steps: number) => {
-    const arr = []
-    for (let i = 0; i <= steps; i++) {
-        arr.push(i / steps)
-    }
-    return arr.join(' ')
+// Live top-layer opacity: the mix, swept from 0 up to it when oscillating
+export function liveMix(state: AppState, beats: number) {
+    if (!state.mixOsc.on) return state.mix
+    return state.mix * wave(state.mixOsc.shape, (beats / state.mixOsc.rate) % 1)
 }
 
-const getCssFilter = (shader: string, params: Record<string, number>, layerId: string) => {
-    const i = params.intensity 
-    switch (shader) {
-        case 'pixelate': return `url(#${layerId}-pixelate)`
-        case 'wavy': return `url(#${layerId}-wavy)`
-        case 'posterize': return `url(#${layerId}-posterize)`
-
-        case 'vcr':
-             const deg = i ?? 1
-             return `blur(${deg * 0.5}px) sepia(${50 * deg}%) contrast(${100 + 50 * deg}%) saturate(${100 + 50 * deg}%)`
-        case 'trippy':
-             const shift = i ?? 180
-             return `invert(100%) hue-rotate(${shift}deg) contrast(150%)`
-        case 'glow':
-             const rad = i ?? 10
-             return `drop-shadow(0 0 ${rad}px rgba(255,255,255,0.8)) brightness(1.2)`
-        case 'scanlines':
-            return 'contrast(120%) brightness(110%)'
-
-        case 'glitch': return `url(#${layerId}-glitch)`
-
-        case 'ink': 
-             const contrast = i ?? 3
-             return `grayscale(1) contrast(${contrast}) brightness(1.2)`
-        case 'predator':
-             const heat = i ?? 180
-             return `invert(1) hue-rotate(${heat}deg) saturate(200%)`
-        case 'solarize':
-             return 'invert(100%) contrast(150%)'
-        case 'dream':
-             const blur = i ?? 5
-             return `blur(${blur}px) brightness(1.2) saturate(150%)`
-        case 'xray':
-             return 'grayscale(1) invert(1) contrast(1.2)'
-        default:
-            return 'none'
-    }
+// Runs every frame, writing modulated values straight to the DOM (no React renders)
+function useFxLoop(apply: (beats: number, state: AppState) => void) {
+    const applyRef = useRef(apply)
+    applyRef.current = apply
+    useEffect(() => {
+        let raf = 0
+        const tick = () => {
+            applyRef.current(beatsNow(), appStore.getState())
+            raf = requestAnimationFrame(tick)
+        }
+        raf = requestAnimationFrame(tick)
+        return () => cancelAnimationFrame(raf)
+    }, [])
 }
 
 interface LayerProps {
-  id: 'videoA' | 'videoB'
-  className?: string
-  style?: React.CSSProperties
+    id: SourceId
+    isTop: boolean
 }
 
-function Layer({ id, className = '', style }: LayerProps) {
-    const state = useStore(appStore, s => s[id])
-    const { videoId, playing, shader, shaderParams, start, end, seek } = {
-        videoId: state.id,
-        playing: state.playing,
-        shader: state.shader,
-        shaderParams: state.shaderParams,
-        start: state.start,
-        end: state.end,
-        seek: state.seek,
-    }
-    
-    const isMasterPlaying = useStore(appStore, s => s.outputPlaying)
+function Layer({ id, isTop }: LayerProps) {
+    const videoId = useStore(appStore, (s) => s[id].id)
+    const playing = useStore(appStore, (s) => s[id].playing)
+    const start = useStore(appStore, (s) => s[id].start)
+    const end = useStore(appStore, (s) => s[id].end)
+    const loop = useStore(appStore, (s) => s[id].loop)
+    const seekTrigger = useStore(appStore, (s) => s[id].seek?.trigger)
+    const effects = useStore(appStore, (s) => s[id].effects)
+    const blendMode = useStore(appStore, (s) => s.blendMode)
+    const isMasterPlaying = useStore(appStore, (s) => s.outputPlaying)
+
     const playerRef = useRef<YouTubePlayer | null>(null)
-    const [duration, setDuration] = useState(0)
-    
+    const wrapRef = useRef<HTMLDivElement>(null)
+    const scanRef = useRef<HTMLDivElement>(null)
     const shouldPlay = playing && isMasterPlaying
 
-    // Sync Playback
+    useFxLoop((beats, state) => {
+        const wrap = wrapRef.current
+        if (!wrap) return
+        const fx = applyFx(state[id].effects, id, { beats, bpm: state.bpm })
+        wrap.style.filter = fx.filter
+        wrap.style.transform = fx.transform
+        wrap.style.opacity = isTop ? String(liveMix(state, beats)) : '1'
+        if (scanRef.current) {
+            scanRef.current.style.display = fx.scanlineHeight ? 'block' : 'none'
+            if (fx.scanlineHeight) scanRef.current.style.backgroundSize = `100% ${fx.scanlineHeight}px`
+        }
+    })
+
+    // A new video remounts the player; drop the old one so nothing calls into a detached iframe
+    useEffect(() => () => {
+        playerRef.current = null
+        registerPlayer(id, null)
+    }, [id, videoId])
+
     useEffect(() => {
         if (!playerRef.current) return
         if (shouldPlay) {
-             // Ensure normal playback speed
-             if (typeof playerRef.current?.setPlaybackRate === 'function') {
-                 playerRef.current.setPlaybackRate(1)
-             }
+            playerRef.current.setPlaybackRate?.(1)
             playerRef.current.playVideo()
         } else {
             playerRef.current.pauseVideo()
         }
     }, [shouldPlay])
 
-    // Seek when Loop Start changes
+    // Seek when loop start changes, or when the inspector scrubs
     useEffect(() => {
-        if (!playerRef.current) return
-        playerRef.current.seekTo(start, true)
+        playerRef.current?.seekTo(start, true)
     }, [start])
 
-    // Handle Scrubbing/Seeking from MiniPlayer
     useEffect(() => {
-        if (!playerRef.current || !seek) return
-        playerRef.current.seekTo(seek.time, true)
-    }, [seek?.trigger])
+        const seek = appStore.getState()[id].seek
+        if (playerRef.current && seek) playerRef.current.seekTo(seek.time, true)
+    }, [seekTrigger, id])
 
-    // Loop Logic
     useEffect(() => {
-        if (!playerRef.current || start == null || !end || end <= start) return
-        
+        if (!loop || !end || end <= start) return
         const interval = setInterval(async () => {
-             // Only loop if we are actually playing (not frozen)
-             if (!shouldPlay) return
-
-             const currentTime = await playerRef.current.getCurrentTime()
-             if (currentTime >= end) {
-                 playerRef.current.seekTo(start, true)
-             }
-        }, 100) 
-        
+            if (!shouldPlay || !playerRef.current) return
+            const t = await playerRef.current.getCurrentTime()
+            if (t >= end) playerRef.current.seekTo(start, true)
+        }, 100)
         return () => clearInterval(interval)
-    }, [start, end, shouldPlay])
-    // Oscillation Logic
-    useEffect(() => {
-        if (!state.oscillate || !state.shader || state.shader === 'none') return
-
-        const config = getShaderConfig(state.shader)
-        let rafId: number
-        
-        const animate = () => {
-             const time = Date.now()
-             // 10s period sine wave (0 to 1) - T=10s => w = 2PI/10000
-             const factor = (Math.sin((time / 10000) * Math.PI * 2) + 1) / 2
-
-             const val = config.min + (config.max - config.min) * factor
-             
-             // Read fresh params to avoid clobbering
-             const currentParams = appStore.getState()[id].shaderParams
-             updateVideoState(id, { shaderParams: { ...currentParams, intensity: val } })
-             
-             rafId = requestAnimationFrame(animate)
-        }
-        
-        rafId = requestAnimationFrame(animate)
-        return () => cancelAnimationFrame(rafId)
-    }, [state.oscillate, state.shader, id])
+    }, [start, end, loop, shouldPlay])
 
     const opts: YouTubeProps['opts'] = {
         height: '100%',
         width: '100%',
         playerVars: {
-            autoplay: playing && isMasterPlaying ? 1 : 0,
+            autoplay: shouldPlay ? 1 : 0,
             controls: 0,
             modestbranding: 1,
             rel: 0,
             mute: 1, // Must be muted for autoplay
-             // origin: window.location.origin
         },
     }
 
     const onReady: YouTubeProps['onReady'] = (e) => {
         playerRef.current = e.target
+        registerPlayer(id, e.target)
+        // The output is a picture, not a control: keep the iframe out of the tab order
+        e.target.getIframe?.()?.setAttribute('tabindex', '-1')
+        const state = appStore.getState()[id]
         const dur = e.target.getDuration()
-        setDuration(dur)
-        
-        // Update store with actual duration. 
-        // If end < 0, interpret as offset from duration.
-        // If no interaction, set selection to full video.
-        const updates: any = { duration: dur }
-        
+
+        // end < 0 is an offset from the duration; without user edits the loop is the whole video
+        const updates: Partial<VideoState> = { duration: dur }
         if (state.end < 0) {
             updates.end = Math.max(0, dur + state.end)
-        } else if (!state.lastInteraction || state.lastInteraction === 0) {
+        } else if (!state.lastInteraction) {
             updates.end = dur
             updates.start = 0
         }
-
         updateVideoState(id, updates)
-        
-        // Initial sync
-        if (playing && isMasterPlaying) {
-            // Seek to start position if defined and user-set
-            if (state.lastInteraction && state.lastInteraction > 0 && start > 0) {
-                 e.target.seekTo(start, true)
-            }
+
+        if (state.playing && appStore.getState().outputPlaying) {
+            if (state.start > 0) e.target.seekTo(state.start, true)
             e.target.playVideo()
         }
     }
 
-    // Dynamic Style for CSS Effects
-    const filter = getCssFilter(shader, shaderParams, id)
-    const transform = 'none'
-
-    const onError: YouTubeProps['onError'] = (e) => {
-        if (videoId) handlePlayerError(id, videoId, e.data)
-    }
-
     const onStateChange: YouTubeProps['onStateChange'] = (e) => {
         if (e.data === 0) { // ENDED
-             e.target.seekTo(start, true)
-             e.target.playVideo()
+            e.target.seekTo(start, true)
+            e.target.playVideo()
         }
     }
 
     return (
-        <div className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`} style={{ ...style, filter, transform }}>
-             <YouTube
+        <div
+            ref={wrapRef}
+            className={`absolute inset-0 pointer-events-none overflow-hidden ${isTop ? 'z-10' : 'z-0'}`}
+            style={isTop ? { mixBlendMode: blendMode } : undefined}
+        >
+            <YouTube
                 key={videoId}
                 videoId={videoId}
                 opts={opts}
                 onReady={onReady}
                 onStateChange={onStateChange}
-                onError={onError}
-                className="w-full h-full object-cover scale-[1.35]" // Small scale to remove letterboxing?
-                iframeClassName="w-full h-full object-cover pointer-events-none"
-             />
-             {shader === 'scanlines' && (
-                <div className="absolute inset-0 pointer-events-none z-20 bg-[size:100%_3px] bg-repeat-y" 
-                     style={{
-                        backgroundImage: 'linear-gradient(transparent 50%, rgba(0, 0, 0, 0.5) 50%)',
-                        backgroundSize: `100% ${shaderParams.intensity ?? 3}px`
-                     }} 
-                />
-             )}
-             
-            {/* Local SVG Filters for Dynamic Intensity */}
-            <svg className="absolute w-0 h-0 pointer-events-none">
-                <defs>
-                    <filter id={`${id}-wavy`}>
-                        <feTurbulence type="turbulence" baseFrequency="0.01" numOctaves="5" result="noise" />
-                        <feDisplacementMap in="SourceGraphic" in2="noise" scale={shader === 'wavy' ? (shaderParams.intensity ?? 40) : 0} />
-                    </filter>
-                    
-                    <filter id={`${id}-posterize`}>
-                        <feComponentTransfer>
-                            <feFuncR type="discrete" tableValues={getPosterizeSteps(shaderParams.intensity ?? 4)} />
-                            <feFuncG type="discrete" tableValues={getPosterizeSteps(shaderParams.intensity ?? 4)} />
-                            <feFuncB type="discrete" tableValues={getPosterizeSteps(shaderParams.intensity ?? 4)} />
-                        </feComponentTransfer>
-                    </filter>
-                    
-                    <filter id={`${id}-pixelate`}>
-                        <feMorphology operator="dilate" radius={(shader === 'pixelate' ? (shaderParams.intensity ?? 8) : 0)} in="SourceGraphic" />
-                    </filter>
-                </defs>
-            </svg>
-            
-            {/* Extended SVG Filters */}
-            <svg className="absolute w-0 h-0 pointer-events-none">
-                <defs>
-                   <filter id={`${id}-glitch`}>
-                        <feTurbulence type="turbulence" baseFrequency="0.5 0.05" numOctaves="2" result="noise" />
-                        <feDisplacementMap in="SourceGraphic" in2="noise" scale={shader === 'glitch' ? (shaderParams.intensity ?? 30) : 0} />
-                    </filter>
-                </defs>
-            </svg>
+                onError={(e) => videoId && handlePlayerError(id, videoId, e.data)}
+                className="w-full h-full scale-[1.35]" // crops YouTube's title bar and letterboxing
+                iframeClassName="w-full h-full pointer-events-none"
+                title={`Source ${id === 'videoA' ? 'A' : 'B'} video`}
+            />
+            <div
+                ref={scanRef}
+                className="absolute inset-0 pointer-events-none z-20 hidden"
+                style={{ backgroundImage: 'linear-gradient(transparent 50%, rgba(0, 0, 0, 0.5) 50%)' }}
+            />
+            <FxDefs effects={effects} scope={id} />
         </div>
     )
 }
 
 export function Stage() {
-    const blendMode = useStore(appStore, s => s.blendMode)
-    const mix = useStore(appStore, s => s.mix)
-    const activeOverlay = useStore(appStore, s => s.activeOverlay) || 'videoB'
+    const activeOverlay = useStore(appStore, (s) => s.activeOverlay)
+    const masterEffects = useStore(appStore, (s) => s.masterEffects)
+    const masterRef = useRef<HTMLDivElement>(null)
+    const scanRef = useRef<HTMLDivElement>(null)
 
-    const bottomId = activeOverlay === 'videoA' ? 'videoB' : 'videoA'
-    const topId = activeOverlay
+    useFxLoop((beats, state) => {
+        const el = masterRef.current
+        if (!el) return
+        const fx = applyFx(state.masterEffects, 'master', { beats, bpm: state.bpm })
+        el.style.filter = fx.filter
+        el.style.transform = fx.transform
+        if (scanRef.current) {
+            scanRef.current.style.display = fx.scanlineHeight ? 'block' : 'none'
+            if (fx.scanlineHeight) scanRef.current.style.backgroundSize = `100% ${fx.scanlineHeight}px`
+        }
+    })
 
     return (
-        <div className="relative w-full h-full bg-black overflow-hidden group">
-            {/* Bottom Layer */}
-            <Layer 
-                id={bottomId} 
-                className="z-0"
-            />
-            
-            {/* Top Layer (Overlay) */}
-            <Layer 
-                id={topId} 
-                className="z-10"
-                style={{ 
-                    mixBlendMode: blendMode as any, 
-                    opacity: mix 
-                }}
-            />
+        <div className="relative h-full w-full overflow-hidden bg-black" aria-label="Output" role="img">
+            <div ref={masterRef} className="absolute inset-0 isolate">
+                <Layer id="videoA" isTop={activeOverlay === 'videoA'} />
+                <Layer id="videoB" isTop={activeOverlay === 'videoB'} />
+                <div
+                    ref={scanRef}
+                    className="absolute inset-0 pointer-events-none z-20 hidden"
+                    style={{ backgroundImage: 'linear-gradient(transparent 50%, rgba(0, 0, 0, 0.5) 50%)' }}
+                />
+            </div>
+            <FxDefs effects={masterEffects} scope="master" />
         </div>
     )
 }

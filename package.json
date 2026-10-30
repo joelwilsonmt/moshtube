@@ -11,6 +11,7 @@
     "check:sources": "bun scripts/check-sources.ts"
   },
   "dependencies": {
+    "@fontsource/saira-semi-condensed": "^5.3.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.562.0",
     "react": "^19.0.0",

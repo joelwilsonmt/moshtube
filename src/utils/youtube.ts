@@ -1,6 +1,6 @@
 import { createStore } from 'zustand/vanilla'
 import { appStore, updateVideoState } from '../store/appStore'
-import type { AppState } from '../store/schema'
+import type { VideoState } from '../store/schema'
 import { SOURCE_A_IDS, SOURCE_B_IDS } from './sourceLists'
 
 type Target = 'videoA' | 'videoB'
@@ -46,17 +46,36 @@ export function parseYouTubeId(input: string): string | null {
 }
 
 const embeddable = new Map<string, boolean>()
+const titles = new Map<string, string>()
+const inflight = new Map<string, Promise<boolean>>()
+
+export const thumbnailUrl = (id: string) => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`
+
+// Title from the oEmbed lookup, fetching it if needed (null when unknown or broken)
+export async function getVideoTitle(id: string): Promise<string | null> {
+    if (!titles.has(id)) await checkEmbeddable(id)
+    return titles.get(id) ?? null
+}
 
 // Network failures (offline, blocked by an extension) count as playable; the player's
 // onError is the backstop.
-export async function checkEmbeddable(id: string): Promise<boolean> {
+export function checkEmbeddable(id: string): Promise<boolean> {
     const cached = embeddable.get(id)
-    if (cached !== undefined) return cached
+    if (cached !== undefined) return Promise.resolve(cached)
+    if (!inflight.has(id)) {
+        inflight.set(id, fetchEmbeddable(id).finally(() => inflight.delete(id)))
+    }
+    return inflight.get(id)!
+}
+
+async function fetchEmbeddable(id: string): Promise<boolean> {
     try {
         const watchUrl = `https://www.youtube.com/watch?v=${id}`
         const res = await fetch(`https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(watchUrl)}`)
         if (res.ok) {
             embeddable.set(id, true)
+            const data = await res.json().catch(() => null)
+            if (typeof data?.title === 'string') titles.set(id, data.title)
             return true
         }
         if (BROKEN_OEMBED_STATUSES.includes(res.status)) {
@@ -93,7 +112,7 @@ async function pickRandomId(target: Target): Promise<string | null> {
 // Latest request per source wins, so rapid shuffle clicks can't land out of order
 const pending: Record<Target, number> = { videoA: 0, videoB: 0 }
 
-export async function loadRandomVideo(target: Target, updates: Partial<AppState['videoA']> = {}) {
+export async function loadRandomVideo(target: Target, updates: Partial<VideoState> = {}) {
     const token = ++pending[target]
     const id = await pickRandomId(target)
     if (token !== pending[target]) return

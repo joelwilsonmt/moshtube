@@ -1,47 +1,188 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import * as React from 'react'
+import type { LucideIcon } from 'lucide-react'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+type ButtonVariant = 'default' | 'primary' | 'ghost'
+
+const buttonVariants: Record<ButtonVariant, string> = {
+  default: 'bg-raised text-ink border border-line hover:bg-line/70 active:bg-line',
+  primary: 'bg-signal text-signal-ink font-semibold hover:brightness-110 active:brightness-95',
+  ghost: 'text-dim hover:text-ink hover:bg-raised active:bg-line',
+}
+
+export const Button = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }>(
+  ({ className, variant = 'default', type = 'button', ...props }, ref) => (
+    <button
+      ref={ref}
+      type={type}
+      className={cn(
+        'inline-flex items-center justify-center gap-1.5 rounded-md px-3 h-8 text-[13px] font-medium transition-colors duration-150 disabled:pointer-events-none disabled:opacity-40',
+        buttonVariants[variant],
+        className
+      )}
+      {...props}
+    />
+  )
+)
+Button.displayName = 'Button'
+
+interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  icon: LucideIcon
+  label: string // accessible name and tooltip
+  active?: boolean
+  size?: 'sm' | 'md'
+}
+
+export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
+  ({ icon: Icon, label, active, size = 'md', className, type = 'button', ...props }, ref) => (
+    <button
+      ref={ref}
+      type={type}
+      aria-label={label}
+      title={label}
+      aria-pressed={active}
+      className={cn(
+        'inline-flex shrink-0 items-center justify-center rounded-md transition-colors duration-150 disabled:pointer-events-none disabled:opacity-40',
+        size === 'sm' ? 'h-7 w-7' : 'h-8 w-8',
+        active ? 'bg-signal/15 text-signal hover:bg-signal/25' : 'text-dim hover:text-ink hover:bg-raised active:bg-line',
+        className
+      )}
+      {...props}
+    >
+      <Icon size={size === 'sm' ? 14 : 16} aria-hidden="true" />
+    </button>
+  )
+)
+IconButton.displayName = 'IconButton'
+
 export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-  ({ className, type, ...props }, ref) => {
-    return (
-      <input
-        type={type}
-        className={cn(
-          "flex h-9 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-300 disabled:cursor-not-allowed disabled:opacity-50",
-          className
-        )}
-        ref={ref}
-        {...props}
-      />
-    )
-  }
-)
-Input.displayName = "Input"
-
-export const Label = React.forwardRef<HTMLLabelElement, React.LabelHTMLAttributes<HTMLLabelElement>>(
-  ({ className, ...props }, ref) => (
-    <label
-      ref={ref}
-      className={cn("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70", className)}
-      {...props}
-    />
-  )
-)
-Label.displayName = "Label"
-
-export const Slider = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-  ({ className, ...props }, ref) => (
+  ({ className, type = 'text', ...props }, ref) => (
     <input
-      type="range"
-      className={cn("w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-zinc-100", className)}
       ref={ref}
+      type={type}
+      className={cn(
+        'h-8 w-full rounded-md border border-line bg-rack px-2.5 text-[13px] text-ink placeholder:text-dim/80 transition-colors focus-visible:border-signal focus-visible:outline-none aria-[invalid=true]:border-danger',
+        className
+      )}
       {...props}
     />
   )
 )
-Slider.displayName = "Slider"
+Input.displayName = 'Input'
+
+export const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement>>(
+  ({ className, ...props }, ref) => (
+    <select
+      ref={ref}
+      className={cn(
+        'h-8 w-full rounded-md border border-line bg-rack pl-2 pr-7 text-[13px] text-ink transition-colors focus-visible:border-signal focus-visible:outline-none',
+        className
+      )}
+      {...props}
+    />
+  )
+)
+Select.displayName = 'Select'
+
+export const Range = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
+  ({ className, ...props }, ref) => <input ref={ref} type="range" className={cn('range', className)} {...props} />
+)
+Range.displayName = 'Range'
+
+// Label + control with a programmatic association; `children` receives the control id
+export function Field({ label, value, className, children }: {
+  label: string
+  value?: React.ReactNode // readout shown at the right of the label
+  className?: string
+  children: (id: string) => React.ReactNode
+}) {
+  const id = React.useId()
+  return (
+    <div className={cn('space-y-1.5', className)}>
+      <div className="flex items-baseline justify-between gap-2">
+        <label htmlFor={id} className="text-xs font-medium text-dim">{label}</label>
+        {value !== undefined && <span className="text-xs text-dim">{value}</span>}
+      </div>
+      {children(id)}
+    </div>
+  )
+}
+
+export function Segmented<T extends string>({ label, value, options, onChange, className }: {
+  label: string
+  value: T
+  options: { value: T; label: string }[]
+  onChange: (value: T) => void
+  className?: string
+}) {
+  return (
+    <div role="group" aria-label={label} className={cn('flex rounded-md border border-line bg-rack p-0.5', className)}>
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          aria-pressed={value === o.value}
+          onClick={() => onChange(o.value)}
+          className={cn(
+            'h-7 flex-1 rounded px-2 text-xs font-medium transition-colors duration-150',
+            value === o.value ? 'bg-raised text-ink' : 'text-dim hover:text-ink'
+          )}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+export function Toggle({ pressed, onChange, children, className, ...props }: Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onChange'> & {
+  pressed: boolean
+  onChange: (pressed: boolean) => void
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={pressed}
+      onClick={() => onChange(!pressed)}
+      className={cn(
+        'h-7 shrink-0 whitespace-nowrap rounded-md border px-2 text-xs font-medium transition-colors duration-150',
+        pressed ? 'border-signal/50 bg-signal/15 text-signal' : 'border-line text-dim hover:bg-raised hover:text-ink',
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </button>
+  )
+}
+
+export function Kbd({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded border border-current/30 px-1 font-sans text-[10px] font-semibold leading-none opacity-80">
+      {children}
+    </kbd>
+  )
+}
+
+// Section inside a panel: label row, optional actions, body
+export function Section({ title, actions, children, className }: {
+  title: string
+  actions?: React.ReactNode
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <section className={cn('border-t border-line px-4 py-3.5 first:border-t-0', className)}>
+      <div className="mb-3 flex h-7 items-center justify-between gap-2">
+        <h3 className="label">{title}</h3>
+        {actions && <div className="flex items-center gap-1">{actions}</div>}
+      </div>
+      <div className="space-y-3">{children}</div>
+    </section>
+  )
+}
