@@ -231,7 +231,7 @@ The mixer row is a single horizontal run of fixed-width strips with 8px gaps and
 
 Panels use 16px horizontal padding and 14px vertical rhythm per section; within sections controls stack at 12px, label-to-control at 6px. Inline control groups use 4 to 8px gaps. The top bar separates groups with 20px-tall vertical hairlines.
 
-Below 768px the app switches to a separate phone view: a 48px header (wordmark, copy link), the stage at minimum 40dvh, then the status line, one 56px Mosh Me Daddy button, and a two-column row of 44px Play and Undo buttons, with safe-area bottom padding. The full mixer is desktop-only.
+Below 768px wide (or under 500px tall on touch screens) the app switches to a separate phone view: a 48px header (wordmark, copy link), the stage filling the free height with a cover crop (tapping it runs Mosh Me Daddy), then the status line showing the full change list, and one row of a 48px Mosh Me Daddy button with 48px Play and Undo, with safe-area bottom padding. The full mixer is desktop-only.
 
 ## Elevation & Depth
 
@@ -273,13 +273,13 @@ Compact, matter-of-fact hardware buttons.
 - **Style:** rack well, 1px edge border, 6px corners, 32px tall (28px compact), 13px ink text, dim placeholder; amber caret.
 - **Focus:** the border turns signal; no outline ring on text fields and selects. Grouped controls (the tempo field) show focus on the group border.
 - **Error / Disabled:** invalid fields take a danger border; disabled controls drop to 40 to 50% opacity.
-- **Toggles:** 28px, edge border, dim 12px text, with a 6px state dot before the label (hollow when off). On state: raised fill, ink at 60% border, ink text, filled ink dot. Active icon buttons (locks, holds) use raised fill with a 1px inset edge ring.
+- **Toggles:** 28px, edge border, dim 12px text, with a 6px state dot before the label (hollow when off). On state: raised fill, ink at 60% border, ink text, filled ink dot. Active icon buttons (locks) use raised fill with a 1px inset edge ring. Every protection is called "Lock": effects, sources, Layer C, crossfade and Master.
 - **Segmented:** rack well with 2px inset padding; selected segment is raised with ink text, others dim.
 - **Sliders:** 4px edge track with a 14px ink cap; the crossfader is a 6px track with the fader cap. A dual-handle loop range uses a dim fill between handles.
 
 ### Navigation
-- **Top bar:** 44px, panel face with a bottom hairline. Left to right: wordmark, tempo group (BPM field, Tap, beat light, auto-mosh controls), status line taking the free space, then undo/redo, presets, copy link, MIDI, pop-out, fullscreen, shortcuts, source link as ghost or icon buttons.
-- **Status line:** 13px dim, announces the last action politely, fades out over 300ms after four seconds.
+- **Top bar:** 44px, panel face with a bottom hairline. Left to right: wordmark, tempo chip (beat light and BPM; tap and auto-mosh live in its popover), status line taking the free space, then play, undo/redo, presets, copy link, MIDI, pop-out, fullscreen, shortcuts, source link as ghost or icon buttons.
+- **Status line:** 13px dim, announces the last action politely, fades out over 300ms after seven seconds. Long change lists show a headline with the full list in the tooltip and to screen readers. First-visit and Remix guidance stays until the next message.
 
 ### LED Meter
 The signature. An 8-segment vertical bar, 6px wide, 3px gaps, 1px corners, beside each strip's preview. The top segment is signal amber (the peak lamp); the rest are the strip's layer colour. Unlit segments sit at 14% opacity; lit segments are fully opaque and update every frame from the live modulation level.

@@ -76,8 +76,6 @@ export function Select<T extends string | number>({
         onSelectedItemChange: ({ selectedItem }) => {
             if (!selectedItem) return
             onChange(selectedItem.value)
-            // After a mouse pick, give focus back to the page so shortcuts keep working
-            if (!focusedByKeyboard()) requestAnimationFrame(() => triggerRef.current?.blur())
         },
     })
 
@@ -93,6 +91,8 @@ export function Select<T extends string | number>({
             const native = e.nativeEvent as KeyboardEvent & { preventDownshiftDefault?: boolean }
             // Closed: app shortcut keys go to the app, not to type-ahead
             if (!isOpen && SHORTCUT_KEYS.has(e.key)) native.preventDownshiftDefault = true
+            // Reached by mouse, Space means play/pause like everywhere else; by Tab, it opens
+            if (!isOpen && e.key === ' ' && !focusedByKeyboard()) native.preventDownshiftDefault = true
             // Open: Escape closes only this menu, not a popover around it
             if (isOpen && e.key === 'Escape') e.preventDefault()
         },

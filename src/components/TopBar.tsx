@@ -21,8 +21,9 @@ export function StatusLine({ className = '', full = false }: { className?: strin
     const status = useStore(uiStore, (s) => s.status)
     const [visible, setVisible] = useState(false)
     useEffect(() => {
+        if (status?.sticky) return setVisible(true)
         const remaining = status ? STATUS_MS - (Date.now() - status.at) : 0
-        if (remaining <= 0) return
+        if (remaining <= 0) return setVisible(false)
         setVisible(true)
         const t = setTimeout(() => setVisible(false), remaining)
         return () => clearTimeout(t)
@@ -53,9 +54,10 @@ export async function copyLink() {
     }
 }
 
-export function PlayToggle({ className, withText = false }: { className?: string; withText?: boolean }) {
+// `keyHint` adds the Space shortcut to the name; off on touch layouts
+export function PlayToggle({ className, withText = false, keyHint = true }: { className?: string; withText?: boolean; keyHint?: boolean }) {
     const playing = useStore(appStore, (s) => s.outputPlaying)
-    const label = playing ? 'Pause output (Space)' : 'Play output (Space)'
+    const label = `${playing ? 'Pause' : 'Play'} output${keyHint ? ' (Space)' : ''}`
     if (withText) {
         return (
             <Button onClick={() => setOutputPlaying(!playing)} className={className}>

@@ -6,6 +6,7 @@ import { useMediaQuery } from '../hooks/useLive'
 import { useShortcuts } from '../hooks/useShortcuts'
 import { useAutoMosh } from '../engine/tempo'
 import { moshMeDaddy } from '../utils/mosh'
+import { COMPACT_QUERY } from '../utils/config'
 import { StageHost, StageSlot, toggleStageFullscreen } from './StageHost'
 import { ViewerView } from './Viewer'
 import { copyLink, PlayToggle, StatusLine, TopBar, Wordmark } from './TopBar'
@@ -22,13 +23,14 @@ function DesktopView() {
                 Skip to the mosh buttons
             </a>
             <TopBar onFullscreen={toggleStageFullscreen} />
-            <div className="grid min-h-0 grid-cols-[minmax(0,1fr)_320px] max-[1279px]:grid-cols-[minmax(0,1fr)_280px]">
+            {/* The mixer comes before the inspector in tab order, though it sits below */}
+            <Mixer className="row-start-3" />
+            <div className="row-start-2 grid min-h-0 grid-cols-[minmax(0,1fr)_320px] max-[1279px]:grid-cols-[minmax(0,1fr)_280px]">
                 <main className="relative min-w-0 bg-black">
                     <StageSlot className="absolute inset-0" />
                 </main>
                 <Inspector />
             </div>
-            <Mixer />
         </div>
     )
 }
@@ -54,7 +56,7 @@ function MobileView() {
                         <Sparkles size={17} aria-hidden="true" />
                         Mosh Me Daddy
                     </Button>
-                    <PlayToggle className="h-12 w-12 border border-edge" />
+                    <PlayToggle keyHint={false} className="h-12 w-12 border border-edge" />
                     <IconButton icon={Undo2} label="Undo" onClick={undo} disabled={!canUndo} className="h-12 w-12 border border-edge" />
                 </div>
                 <p className="text-center text-xs text-dim [@media(max-height:500px)]:hidden">Tap the video to mosh. Effects and the full mixer open on a larger screen.</p>
@@ -63,12 +65,9 @@ function MobileView() {
     )
 }
 
-// Phones, plus touch screens too short for the rack (a phone turned sideways)
-const COMPACT = '(max-width: 767px), (max-height: 500px) and (pointer: coarse)'
-
 export function Dashboard() {
     useAutoMosh()
-    const compact = useMediaQuery(COMPACT)
+    const compact = useMediaQuery(COMPACT_QUERY)
     const viewer = useStore(uiStore, (s) => s.viewer)
     return (
         <>

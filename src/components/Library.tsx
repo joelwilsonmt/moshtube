@@ -82,7 +82,7 @@ export function MyVideos() {
             />
             {useMyPool && !pool.length && <p className="text-xs text-dim">Add some videos below first. Until then, shuffle uses Moshtube picks.</p>}
             <details className="group" open={useMyPool && !pool.length ? true : undefined}>
-                <summary className="cursor-pointer list-none text-xs font-medium text-dim hover:text-ink [&::-webkit-details-marker]:hidden">
+                <summary className="inline-flex cursor-pointer list-none items-center rounded-md border border-edge px-2 py-1 text-xs font-medium text-dim hover:bg-raised hover:text-ink [&::-webkit-details-marker]:hidden">
                     <span className="group-open:hidden">Edit my videos</span>
                     <span className="hidden group-open:inline">Hide my videos</span>
                 </summary>

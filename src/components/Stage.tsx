@@ -8,6 +8,7 @@ import { beatsNow } from '../engine/clock'
 import { getPlayer, registerPlayer } from '../engine/players'
 import { swapStore } from '../engine/swap'
 import { handlePlayerError } from '../utils/youtube'
+import { useVideoTitle } from '../hooks/useLive'
 import { OverlayLayer } from './OverlayLayer'
 
 const REVEAL_DELAY_MS = 4000
@@ -71,6 +72,9 @@ function PlayerSlot({ id, videoId, active: activeSlot, onRevealed }: SlotProps) 
         fadeRef.current += ((readyRef.current ? 1 : 0) - fadeRef.current) * 0.08
         if (fadeRef.current > 0.995) fadeRef.current = 1
         el.style.opacity = String(fadeRef.current)
+        // Chrome can still paint a cross-origin YouTube iframe under opacity 0 (its own
+        // controls included); visibility reliably hides it until the fade starts
+        el.style.visibility = fadeRef.current < 0.01 ? 'hidden' : 'visible'
         if (fadeRef.current === 1 && !revealedRef.current) {
             revealedRef.current = true
             onRevealedRef.current()
@@ -165,7 +169,7 @@ function PlayerSlot({ id, videoId, active: activeSlot, onRevealed }: SlotProps) 
     }
 
     return (
-        <div ref={slotRef} className="absolute inset-0" style={{ opacity: 0 }}>
+        <div ref={slotRef} className="absolute inset-0" style={{ opacity: 0, visibility: 'hidden' }}>
             {/* Cover-crop: the 16:9 player fills any stage shape (container query units) */}
             <div
                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -264,6 +268,9 @@ function Layer({ id, isTop }: LayerProps) {
 
 export function Stage() {
     const activeOverlay = useStore(appStore, (s) => s.activeOverlay)
+    const titleA = useVideoTitle(useStore(appStore, (s) => s.videoA.id))
+    const titleB = useVideoTitle(useStore(appStore, (s) => s.videoB.id))
+    const label = titleA || titleB ? `Output: ${[titleA, titleB].filter(Boolean).join(' mixed with ')}` : 'Output'
     const masterEffects = useStore(appStore, (s) => s.masterEffects)
     const masterRef = useRef<HTMLDivElement>(null)
     const scanRef = useRef<HTMLDivElement>(null)
@@ -281,7 +288,7 @@ export function Stage() {
     })
 
     return (
-        <div className="absolute inset-0 overflow-hidden bg-black [container-type:size]" aria-label="Output" role="img">
+        <div className="absolute inset-0 overflow-hidden bg-black [container-type:size]" aria-label={label} role="img">
             <div ref={masterRef} className="absolute inset-0 isolate">
                 <Layer id="videoA" isTop={activeOverlay === 'videoA'} />
                 <Layer id="videoB" isTop={activeOverlay === 'videoB'} />

@@ -166,3 +166,22 @@
 .lottie-thumb path[stroke]:not([stroke="none"]) {
   stroke-width: 70px;
 }
+
+/* Loading cue: rings expanding from the centre while new videos fade in */
+@keyframes swap-ring {
+  from { transform: translate(-50%, -50%) scale(0.05); opacity: 1; }
+  to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}
+.swap-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 160vmax;
+  height: 160vmax;
+  border-radius: 50%;
+  border: 1.2vmax solid oklch(0.7 0.16 300);
+  animation: swap-ring 2.4s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .swap-ring { animation: none; transform: translate(-50%, -50%) scale(0.2); opacity: 0.6; }
+}
