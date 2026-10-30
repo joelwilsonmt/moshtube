@@ -55,7 +55,7 @@ function EffectRow({ target, effect, index, count }: { target: FxTarget; effect:
                 <IconButton
                     size="sm"
                     icon={effect.keep ? Lock : LockOpen}
-                    label={effect.keep ? `${def.label} is kept: Mosh only changes its amount` : `Keep ${def.label} when moshing`}
+                    label={effect.keep ? `${def.label} locked: Mosh leaves it as is` : `Lock ${def.label} so Mosh leaves it as is`}
                     active={effect.keep}
                     onClick={() => updateEffect(target, effect.id, { keep: !effect.keep })}
                 />

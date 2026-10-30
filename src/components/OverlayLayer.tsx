@@ -146,7 +146,8 @@ export function LottieThumb({ name, hue }: { name: string; hue: number }) {
 }
 
 // While a source loads or swaps and Layer C is off, faint rings cover the wait so it
-// reads as part of the show rather than a stall
+// reads as part of the show rather than a stall. Plain CSS, so the Lottie player only
+// loads when Layer C actually uses Lottie.
 function SwapCue() {
     const loading = useStore(swapStore, (s) => s.videoA || s.videoB)
     const [mounted, setMounted] = useState(loading)
@@ -158,10 +159,11 @@ function SwapCue() {
     if (!mounted) return null
     return (
         <div
-            className="pointer-events-none absolute inset-0 z-20 transition-opacity duration-700"
+            className="pointer-events-none absolute inset-0 z-20 overflow-hidden transition-opacity duration-700"
             style={{ mixBlendMode: 'screen', opacity: loading ? 0.55 : 0 }}
+            aria-hidden="true"
         >
-            <LottieView source="rings" reportErrors={false} />
+            {[0, 1, 2].map((i) => <span key={i} className="swap-ring" style={{ animationDelay: `${i * -0.8}s` }} />)}
         </div>
     )
 }

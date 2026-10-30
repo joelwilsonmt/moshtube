@@ -128,7 +128,7 @@ function SourceStrip({ id }: { id: SourceId }) {
                 <IconButton
                     size="sm"
                     icon={hold ? Lock : LockOpen}
-                    label={hold ? `${name} is held: randomizers skip it` : `Hold ${name} so randomizers skip it`}
+                    label={hold ? `${name} locked: randomizers skip it` : `Lock ${name} so randomizers skip it`}
                     active={hold}
                     onClick={() => updateVideoState(id, { hold: !hold })}
                 />
@@ -290,7 +290,7 @@ function OverlayStrip() {
                 <IconButton
                     size="sm"
                     icon={overlay.hold ? Lock : LockOpen}
-                    label={overlay.hold ? 'Layer C is held: randomizers skip it' : 'Hold Layer C so randomizers skip it'}
+                    label={overlay.hold ? 'Layer C locked: randomizers skip it' : 'Lock Layer C so randomizers skip it'}
                     active={overlay.hold}
                     onClick={() => setOverlay({ hold: !overlay.hold })}
                 />
@@ -335,15 +335,16 @@ function MasterStrip() {
     )
 }
 
-export function Mixer() {
+export function Mixer({ className }: { className?: string }) {
     return (
-        <footer className="flex shrink-0 items-stretch gap-2 overflow-x-auto border-t border-line bg-panel p-2 max-[1279px]:flex-wrap">
+        <footer className={cn('flex shrink-0 items-stretch gap-2 overflow-x-auto border-t border-line bg-panel p-2 max-[1279px]:flex-wrap', className)}>
+            {/* First in tab order; drawn last (right) on wide screens */}
+            <MoshCluster id="mosh" className="w-[212px] min-[1400px]:w-[300px] shrink-0 min-[1280px]:order-last max-[1279px]:w-full max-[1279px]:flex-row" />
             <SourceStrip id="videoA" />
             <Crossfader />
             <SourceStrip id="videoB" />
             <OverlayStrip />
             <MasterStrip />
-            <MoshCluster id="mosh" className="w-[212px] min-[1400px]:w-[300px] shrink-0 max-[1279px]:order-first max-[1279px]:w-full max-[1279px]:flex-row" />
         </footer>
     )
 }

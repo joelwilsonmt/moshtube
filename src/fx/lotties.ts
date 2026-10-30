@@ -103,7 +103,7 @@ const BUILDERS = {
         const heights = [0, 1, 2, 3].map((b) => [100, 15 + seeded(i * 7 + b) * 85])
         const keys: Keyframe[] = heights.flatMap(([, h], b) => [
             { t: b * 30, s: [100, 100], ...EASE_OUT },
-            { t: b * 30 + 22, s: [100, h] },
+            { t: b * 30 + 22, s: [100, h], ...EASE_OUT },
         ]) as Keyframe[]
         keys.push({ t: FRAMES, s: [100, 100] })
         return group([rect(90, 700, [0, -350]), fill()], transform({ p: still([-W / 2 + 160 + i * 145, H / 2 - 80]), s: moving(keys) }))

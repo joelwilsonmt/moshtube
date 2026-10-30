@@ -2,28 +2,29 @@ import { appStore, updateVideoState, setBlendMode, setMix, setMixOsc, setOverlay
 import { checkpoint, withoutHistory } from '../store/history'
 import { announce, flashChanged } from '../store/uiStore'
 import { BlendModeSchema, OSC_RATES, PatternSchema, type SourceId } from '../store/schema'
-import { EFFECTS, MAX_EFFECTS, randomAmount, randomEffect } from '../fx/effects'
+import { EFFECTS, MAX_EFFECTS, randomEffect } from '../fx/effects'
 import { PATTERN_LABELS } from '../fx/patterns'
 import { BUILT_IN_LOTTIES, isBuiltInLottie, LOTTIE_LABELS } from '../fx/lotties'
 import { loadRandomVideo, randomPoolId } from './youtube'
+import { isCompact } from './config'
 
 const pick = <T,>(arr: readonly T[]) => arr[Math.floor(Math.random() * arr.length)]
 const SOURCES: SourceId[] = ['videoA', 'videoB']
 const letter = (id: SourceId) => (id === 'videoA' ? 'A' : 'B')
 
-// Returns a short description for the status line, or null if the layer is held
+// Returns a short description for the status line, or null if the layer is locked
 function moshEffects(id: SourceId) {
     const { hold, effects: current } = appStore.getState()[id]
     if (hold) return null
-    // Effects added by hand stay; Mosh only rerolls how much of each
-    const kept = current.filter((e) => e.keep).map((e) => ({ ...e, amount: randomAmount(e.type) }))
+    // Locked effects (anything added by hand) stay exactly as they are
+    const kept = current.filter((e) => e.keep)
     const room = Math.max(0, MAX_EFFECTS - kept.length)
     const rolls = Math.min(room, Math.random() < 0.3 ? 2 : 1)
     const fresh: typeof current = []
     for (let i = 0; i < rolls; i++) fresh.push(randomEffect([...kept, ...fresh].map((e) => e.type)))
     const effects = [...kept, ...fresh]
     updateVideoState(id, { effects })
-    return `${letter(id)}: ${effects.map((e) => EFFECTS[e.type].label + (e.keep ? ' (kept)' : '')).join(' + ')}`
+    return `${letter(id)}: ${effects.map((e) => EFFECTS[e.type].label + (e.keep ? ' (locked)' : '')).join(' + ')}`
 }
 
 type Change = { id: string; text: string } | null
@@ -31,7 +32,7 @@ type Change = { id: string; text: string } | null
 // Line shows the headline; the full list goes to the tooltip, screen readers and strip flashes
 function summarize(scope: string, changes: Change[]) {
     const done = changes.filter((c): c is NonNullable<Change> => !!c)
-    if (!done.length) return announce(`${scope} · everything is held`)
+    if (!done.length) return announce(`${scope} · everything is locked`)
     const texts = done.map((c) => c.text)
     const headline = texts.length > 2 ? `${scope} · ${texts.slice(0, 2).join(' · ')} +${texts.length - 2} more` : `${scope} · ${texts.join(' · ')}`
     announce(headline, `${scope} · ${texts.join(' · ')}`)
@@ -135,5 +136,5 @@ export function rollFreshMix() {
         moshOverlay(true)
         moshOutput()
     })
-    announce('Fresh random mix. Hit Mosh Me Daddy for another.')
+    announce(isCompact() ? 'Fresh random mix. Tap the video for another.' : 'Fresh random mix. Press 3 or Mosh Me Daddy for another.', undefined, true)
 }

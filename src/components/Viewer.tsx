@@ -3,12 +3,15 @@ import { Link2, Maximize, SlidersHorizontal } from 'lucide-react'
 import { appStore, setOutputPlaying } from '../store/appStore'
 import { enterMixer } from '../store/uiStore'
 import { StageSlot, toggleStageFullscreen } from './StageHost'
+import { useMediaQuery } from '../hooks/useLive'
+import { COMPACT_QUERY } from '../utils/config'
 import { copyLink, PlayToggle, Wordmark } from './TopBar'
 import { Button, IconButton } from './ui/core'
 
 // What a shared link opens: the mix itself, with one way in to the mixer.
 // The controls stay put; only fullscreen hides them when idle.
 export function ViewerView() {
+    const compact = useMediaQuery(COMPACT_QUERY)
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return
@@ -32,7 +35,7 @@ export function ViewerView() {
             </header>
 
             <div className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-lg border border-line bg-panel/90 p-2 shadow-[0_8px_24px_oklch(0_0_0/0.5)] backdrop-blur">
-                <PlayToggle className="h-11 w-11" />
+                <PlayToggle keyHint={!compact} className="h-11 w-11" />
                 <Button variant="primary" onClick={enterMixer} className="h-11 whitespace-nowrap px-5 text-[14px] font-semibold">
                     <SlidersHorizontal size={17} aria-hidden="true" />
                     Remix this
