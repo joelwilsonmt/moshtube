@@ -32,6 +32,16 @@ export const BLEND_LABELS: Record<AppState['blendMode'], string> = {
     exclusion: 'Exclusion (soft invert)',
 }
 
+// One line on what each blend does to the picture, for the Master inspector
+export const BLEND_HINTS: Record<AppState['blendMode'], string> = {
+    normal: 'The top source covers the one below; the crossfade fades between them.',
+    multiply: 'Darks from both sources stack up. Black wins, white disappears.',
+    screen: 'Lights from both sources add up. White wins, black disappears.',
+    overlay: 'Boosts contrast: brights get brighter and darks darker where they meet.',
+    difference: 'Subtracts one source from the other, so matching areas go black and colors invert.',
+    exclusion: 'Like Difference but softer and grayer.',
+}
+
 export const rateLabel = (beats: number) =>
     beats < 4 ? `${beats} beat${beats === 1 ? '' : 's'}` : `${beats / 4} bar${beats === 4 ? '' : 's'}`
 
@@ -304,7 +314,7 @@ function MasterStrip() {
                     <div className="space-y-1">
                         <label htmlFor="blend-mode" className="label">Blend</label>
                         <Select id="blend-mode" value={blendMode} onChange={(e) => { checkpoint(); setBlendMode(e.target.value as AppState['blendMode']) }}>
-                            {BlendModeSchema.options.map((m) => <option key={m} value={m}>{BLEND_LABELS[m]}</option>)}
+                            {BlendModeSchema.options.map((m) => <option key={m} value={m} title={BLEND_LABELS[m]}>{BLEND_LABELS[m].split(' ')[0]}</option>)}
                         </Select>
                     </div>
                     <button

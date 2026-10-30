@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useStore } from 'zustand'
 import { Shuffle } from 'lucide-react'
-import { appStore, setOverlay, updateVideoState } from '../store/appStore'
+import { appStore, setBlendMode, setOverlay, updateVideoState } from '../store/appStore'
 import { PATTERN_LABELS } from '../fx/patterns'
 import { overlayErrorStore } from './OverlayLayer'
 import { checkpoint } from '../store/history'
 import { uiStore } from '../store/uiStore'
-import { BlendModeSchema, PatternSchema, type Overlay, type Pattern, type SourceId } from '../store/schema'
+import { BlendModeSchema, PatternSchema, type BlendMode, type Overlay, type Pattern, type SourceId } from '../store/schema'
 import { usePlayhead, useVideoTitle } from '../hooks/useLive'
 import { formatTime, parseTime } from '../utils/time'
 import { loadRandomVideo, parseYouTubeId, videoErrorStore } from '../utils/youtube'
@@ -14,7 +14,7 @@ import { DualRangeSlider } from './ui/DualRangeSlider'
 import { Button, Field, IconButton, Input, Range, Section, Segmented, Select } from './ui/core'
 import { EffectStack } from './EffectStack'
 import { MyVideos } from './Library'
-import { BLEND_LABELS, LAYER, LayerChip } from './Mixer'
+import { BLEND_HINTS, BLEND_LABELS, LAYER, LayerChip } from './Mixer'
 
 // Commits on blur or Enter; shows the formatted value otherwise
 function TimeInput({ id, value, onCommit }: { id: string; value: number; onCommit: (v: number) => void }) {
@@ -248,6 +248,22 @@ function OverlayInspector() {
     )
 }
 
+function MasterBlend() {
+    const blendMode = useStore(appStore, (s) => s.blendMode)
+    return (
+        <Section title="Blend">
+            <Field label="How the top source mixes with the one below">
+                {(fieldId) => (
+                    <Select id={fieldId} value={blendMode} aria-describedby="blend-hint" onChange={(e) => { checkpoint(); setBlendMode(e.target.value as BlendMode) }}>
+                        {BlendModeSchema.options.map((m) => <option key={m} value={m}>{BLEND_LABELS[m]}</option>)}
+                    </Select>
+                )}
+            </Field>
+            <p id="blend-hint" className="text-xs text-dim">{BLEND_HINTS[blendMode]}</p>
+        </Section>
+    )
+}
+
 export function Inspector() {
     const selected = useStore(uiStore, (s) => s.selected)
     return (
@@ -260,9 +276,12 @@ export function Inspector() {
                 {selected === 'overlay' ? (
                     <OverlayInspector />
                 ) : selected === 'master' ? (
-                    <Section title="Output effects">
-                        <EffectStack target="master" />
-                    </Section>
+                    <>
+                        <MasterBlend />
+                        <Section title="Output effects">
+                            <EffectStack target="master" />
+                        </Section>
+                    </>
                 ) : (
                     <SourceInspector key={selected} id={selected} />
                 )}
