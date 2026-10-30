@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useStore } from 'zustand'
 import { appStore, updateVideoState } from '../store/appStore'
 import { Input, Label, Slider } from './ui/core'
@@ -6,7 +7,7 @@ import { ShaderTypeSchema } from '../store/schema'
 import { Play, Pause, Zap, Shuffle } from 'lucide-react'
 import { getShaderConfig } from '../utils/shaderUtils'
 import { moshVideo } from '../utils/mosh'
-import { SOURCE_A_IDS, SOURCE_B_IDS } from '../utils/sourceLists'
+import { loadRandomVideo, parseYouTubeId, videoErrorStore } from '../utils/youtube'
 
 interface Props {
   id: 'videoA' | 'videoB'
@@ -49,25 +50,21 @@ export function VideoControlPanel({ id, title }: Props) {
   const update = (updates: any) => updateVideoState(id, { ...updates, lastInteraction: Date.now() })
   const shaderOptions = ShaderTypeSchema.options
 
+  const playerError = useStore(videoErrorStore, (s) => s[id])
+
+  // Local draft so partial input doesn't remount the players with half-typed IDs
+  const [draft, setDraft] = useState(state.id || '')
+  useEffect(() => setDraft(state.id || ''), [state.id])
+  const draftInvalid = draft.trim() !== '' && !parseYouTubeId(draft)
+
   const handleIdChange = (val: string) => {
-      // Basic extraction
-      let nextId = val
-      try {
-          const url = new URL(val)
-          if (url.hostname.includes('youtube.com')) {
-              nextId = url.searchParams.get('v') || nextId
-          } else if (url.hostname.includes('youtu.be')) {
-              nextId = url.pathname.slice(1) || nextId
-          }
-      } catch {}
-      
-      update({ id: nextId, playing: true, lastInteraction: Date.now() })
+      setDraft(val)
+      const nextId = parseYouTubeId(val)
+      if (nextId && nextId !== state.id) update({ id: nextId, playing: true })
   }
 
   const handleRandom = () => {
-      const list = id === 'videoA' ? SOURCE_A_IDS : SOURCE_B_IDS
-      const randomId = list[Math.floor(Math.random() * list.length)]
-      update({ id: randomId, playing: true, lastInteraction: Date.now() })
+      void loadRandomVideo(id)
   }
 
   return (
@@ -97,8 +94,8 @@ export function VideoControlPanel({ id, title }: Props) {
           <div className="p-3 border border-zinc-800 rounded-md bg-zinc-950/30 space-y-2">
             <Label>YouTube ID / URL</Label>
             <div className="flex gap-2">
-                <Input 
-                  value={state.id || ''} 
+                <Input
+                  value={draft}
                   onChange={(e) => handleIdChange(e.target.value)}
                   placeholder="Video ID or URL"
                   className="flex-1 font-mono text-xs"
@@ -111,6 +108,8 @@ export function VideoControlPanel({ id, title }: Props) {
                     <Shuffle size={16} />
                 </button>
             </div>
+            {draftInvalid && <p className="text-xs text-zinc-500">Paste a YouTube link or 11-character video ID.</p>}
+            {playerError && <p className="text-xs text-red-400">{playerError}</p>}
           </div>
 
           {/* Shader Section */}

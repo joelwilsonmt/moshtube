@@ -3,6 +3,7 @@ import { useStore } from 'zustand'
 import YouTube, { YouTubeProps, YouTubePlayer } from 'react-youtube'
 import { appStore, updateVideoState } from '../store/appStore'
 import { getShaderConfig } from '../utils/shaderUtils'
+import { handlePlayerError } from '../utils/youtube'
 
 // Map "Shader" names to CSS Filters
 const getPosterizeSteps = (steps: number) => {
@@ -189,6 +190,10 @@ function Layer({ id, className = '', style }: LayerProps) {
     const filter = getCssFilter(shader, shaderParams, id)
     const transform = 'none'
 
+    const onError: YouTubeProps['onError'] = (e) => {
+        if (videoId) handlePlayerError(id, videoId, e.data)
+    }
+
     const onStateChange: YouTubeProps['onStateChange'] = (e) => {
         if (e.data === 0) { // ENDED
              e.target.seekTo(start, true)
@@ -204,6 +209,7 @@ function Layer({ id, className = '', style }: LayerProps) {
                 opts={opts}
                 onReady={onReady}
                 onStateChange={onStateChange}
+                onError={onError}
                 className="w-full h-full object-cover scale-[1.35]" // Small scale to remove letterboxing?
                 iframeClassName="w-full h-full object-cover pointer-events-none"
              />

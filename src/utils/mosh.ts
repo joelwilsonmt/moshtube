@@ -1,7 +1,7 @@
 import { updateVideoState, setBlendMode, setMix, setMixOscillate } from '../store/appStore'
 import { ShaderTypeSchema, BlendModeSchema } from '../store/schema'
 import { getShaderConfig } from './shaderUtils'
-import { SOURCE_A_IDS, SOURCE_B_IDS } from './sourceLists'
+import { loadRandomVideo } from './youtube'
 
 export const moshVideo = (id: 'videoA' | 'videoB') => {
     // filter out 'none' to ensure an effect is applied
@@ -35,29 +35,10 @@ export const moshEverything = () => {
 }
 
 export const moshMeDaddy = () => {
-    const idA = SOURCE_A_IDS[Math.floor(Math.random() * SOURCE_A_IDS.length)]
-    const idB = SOURCE_B_IDS[Math.floor(Math.random() * SOURCE_B_IDS.length)]
-    
-    // Set Video A
-    updateVideoState('videoA', {
-        id: idA,
-        start: 15,
-        end: -5, // Signal for "Duration - 5s"
-        loop: true,
-        playing: true,
-        lastInteraction: Date.now()
-    })
-
-    // Set Video B
-    updateVideoState('videoB', {
-        id: idB,
-        start: 15,
-        end: -5,
-        loop: true,
-        playing: true,
-        lastInteraction: Date.now()
-    })
-    
-    // Apply Effects
+    // Apply effects now; videos swap in once a playable pick is confirmed
     moshEverything()
+
+    const loop = { start: 15, end: -5, loop: true } // end -5 signals "Duration - 5s"
+    void loadRandomVideo('videoA', loop)
+    void loadRandomVideo('videoB', loop)
 }
