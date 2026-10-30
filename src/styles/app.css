@@ -9,7 +9,8 @@
     --rack: 0.155 0.006 255;
     --panel: 0.2 0.007 255;
     --raised: 0.25 0.008 255;
-    --line: 0.32 0.009 255;
+    --line: 0.32 0.009 255; /* dividers */
+    --edge: 0.5 0.012 255; /* control boundaries, 3:1 on panels */
     --ink: 0.94 0.004 255;
     --dim: 0.74 0.012 255;
     /* The one signal color: live, active, primary */
@@ -68,12 +69,12 @@
   .range::-webkit-slider-runnable-track {
     height: 4px;
     border-radius: 2px;
-    background: oklch(var(--line));
+    background: oklch(var(--edge));
   }
   .range::-moz-range-track {
     height: 4px;
     border-radius: 2px;
-    background: oklch(var(--line));
+    background: oklch(var(--edge));
   }
   .range::-webkit-slider-thumb {
     -webkit-appearance: none;
@@ -102,12 +103,12 @@
   .range-fader::-webkit-slider-runnable-track {
     height: 6px;
     border-radius: 3px;
-    background: linear-gradient(to right, oklch(var(--fader-l, var(--layer-a)) / 0.75), oklch(var(--line)) 30% 70%, oklch(var(--fader-r, var(--layer-b)) / 0.75));
+    background: linear-gradient(to right, oklch(var(--fader-l, var(--layer-a)) / 0.75), oklch(var(--edge)) 30% 70%, oklch(var(--fader-r, var(--layer-b)) / 0.75));
   }
   .range-fader::-moz-range-track {
     height: 6px;
     border-radius: 3px;
-    background: linear-gradient(to right, oklch(var(--fader-l, var(--layer-a)) / 0.75), oklch(var(--line)) 30% 70%, oklch(var(--fader-r, var(--layer-b)) / 0.75));
+    background: linear-gradient(to right, oklch(var(--fader-l, var(--layer-a)) / 0.75), oklch(var(--edge)) 30% 70%, oklch(var(--fader-r, var(--layer-b)) / 0.75));
   }
   .range-fader::-webkit-slider-thumb {
     width: 18px;

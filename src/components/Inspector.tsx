@@ -85,7 +85,7 @@ function SourceInspector({ id }: { id: SourceId }) {
                                 className="flex-1"
                                 spellCheck={false}
                             />
-                            <IconButton icon={Shuffle} label="Random video" onClick={() => { checkpoint(); void loadRandomVideo(id, FULL_LOOP) }} className="border border-line" />
+                            <IconButton icon={Shuffle} label="Random video" onClick={() => { checkpoint(); void loadRandomVideo(id, FULL_LOOP) }} className="border border-edge" />
                         </div>
                     )}
                 </Field>

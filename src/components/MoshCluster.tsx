@@ -17,7 +17,7 @@ export function MoshCluster({ compact = false, className }: { compact?: boolean;
                     type="button"
                     onClick={run}
                     title={`${hint} (${key})`}
-                    className="group flex h-9 items-center gap-2 rounded-md border border-line bg-raised px-3 text-left text-[13px] font-medium text-ink transition-colors duration-150 hover:bg-line/70 active:bg-line"
+                    className="group flex h-9 items-center gap-2 rounded-md border border-edge bg-raised px-3 text-left text-[13px] font-medium text-ink transition-colors duration-150 hover:bg-line/70 active:bg-line"
                 >
                     <Icon size={15} aria-hidden="true" className="shrink-0 text-dim group-hover:text-ink" />
                     <span className="whitespace-nowrap">{label}</span>

@@ -94,7 +94,7 @@ export function MyVideos() {
                         rows={5}
                         spellCheck={false}
                         placeholder="https://youtu.be/…"
-                        className="w-full resize-y rounded-md border border-line bg-rack px-2.5 py-2 text-[13px] text-ink placeholder:text-dim/80 focus-visible:border-signal focus-visible:outline-none"
+                        className="w-full resize-y rounded-md border border-edge bg-rack px-2.5 py-2 text-[13px] text-ink placeholder:text-dim/80 focus-visible:border-signal focus-visible:outline-none"
                     />
                     <div className="flex items-center gap-2">
                         <Button onClick={() => { const n = setPoolFromText(text); setSaved(n); if (n) setUseMyPool(true) }}>Save list</Button>

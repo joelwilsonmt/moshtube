@@ -10,7 +10,7 @@ export function cn(...inputs: ClassValue[]) {
 type ButtonVariant = 'default' | 'primary' | 'ghost'
 
 const buttonVariants: Record<ButtonVariant, string> = {
-  default: 'bg-raised text-ink border border-line hover:bg-line/70 active:bg-line',
+  default: 'bg-raised text-ink border border-edge hover:bg-line/70 active:bg-line',
   primary: 'bg-signal text-signal-ink font-semibold hover:brightness-110 active:brightness-95',
   ghost: 'text-dim hover:text-ink hover:bg-raised active:bg-line',
 }
@@ -66,7 +66,7 @@ export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
       ref={ref}
       type={type}
       className={cn(
-        'h-8 w-full rounded-md border border-line bg-rack px-2.5 text-[13px] text-ink placeholder:text-dim/80 transition-colors focus-visible:border-signal focus-visible:outline-none aria-[invalid=true]:border-danger',
+        'h-8 w-full rounded-md border border-edge bg-rack px-2.5 text-[13px] text-ink placeholder:text-dim/80 transition-colors focus-visible:border-signal focus-visible:outline-none aria-[invalid=true]:border-danger',
         className
       )}
       {...props}
@@ -80,7 +80,7 @@ export const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttrib
     <select
       ref={ref}
       className={cn(
-        'h-8 w-full rounded-md border border-line bg-rack pl-2 pr-7 text-[13px] text-ink transition-colors focus-visible:border-signal focus-visible:outline-none',
+        'h-8 w-full rounded-md border border-edge bg-rack pl-2 pr-7 text-[13px] text-ink transition-colors focus-visible:border-signal focus-visible:outline-none',
         className
       )}
       {...props}
@@ -121,7 +121,7 @@ export function Segmented<T extends string>({ label, value, options, onChange, c
   className?: string
 }) {
   return (
-    <div role="group" aria-label={label} className={cn('flex rounded-md border border-line bg-rack p-0.5', className)}>
+    <div role="group" aria-label={label} className={cn('flex rounded-md border border-edge bg-rack p-0.5', className)}>
       {options.map((o) => (
         <button
           key={o.value}
@@ -151,7 +151,7 @@ export function Toggle({ pressed, onChange, children, className, ...props }: Omi
       onClick={() => onChange(!pressed)}
       className={cn(
         'h-7 shrink-0 whitespace-nowrap rounded-md border px-2 text-xs font-medium transition-colors duration-150',
-        pressed ? 'border-signal/50 bg-signal/15 text-signal' : 'border-line text-dim hover:bg-raised hover:text-ink',
+        pressed ? 'border-signal/50 bg-signal/15 text-signal' : 'border-edge text-dim hover:bg-raised hover:text-ink',
         className
       )}
       {...props}

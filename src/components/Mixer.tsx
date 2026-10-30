@@ -297,7 +297,7 @@ function MasterStrip() {
                     type="button"
                     onClick={() => select('master')}
                     aria-pressed={selected}
-                    className="flex h-8 min-w-0 flex-1 items-center rounded-md border border-line bg-raised px-2.5 text-left text-xs font-medium text-ink transition-colors hover:bg-line/70"
+                    className="flex h-8 min-w-0 flex-1 items-center rounded-md border border-edge bg-raised px-2.5 text-left text-xs font-medium text-ink transition-colors hover:bg-line/70"
                 >
                     <span className="truncate">{effects.length ? `Output: ${effects.map((e) => EFFECTS[e.type].label).join(' + ')}` : 'Output effects'}</span>
                 </button>

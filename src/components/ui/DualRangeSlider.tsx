@@ -19,7 +19,7 @@ export function DualRangeSlider({ min, max, step = 1, value, onChange, labels, f
 
   return (
     <div className={cn('relative h-5', className)}>
-      <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-line">
+      <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-edge">
         <div className="absolute h-full rounded-full bg-dim" style={{ left: `${left}%`, width: `${Math.max(0, right - left)}%` }} />
       </div>
       <input

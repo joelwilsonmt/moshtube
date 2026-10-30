@@ -11,6 +11,7 @@ export default {
         panel: token('panel'),
         raised: token('raised'),
         line: token('line'),
+        edge: token('edge'),
         ink: token('ink'),
         dim: token('dim'),
         signal: token('signal'),

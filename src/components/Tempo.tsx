@@ -35,7 +35,7 @@ export function Tempo() {
 
     return (
         <div className="flex shrink-0 items-center gap-2">
-            <div role="group" aria-label="Tempo" className="flex items-center rounded-md border border-line bg-rack">
+            <div role="group" aria-label="Tempo" className="flex items-center rounded-md border border-edge bg-rack focus-within:border-signal">
                 <IconButton size="sm" icon={Minus} label="Slower (1 BPM)" onClick={() => setBpm(Math.round(bpm) - 1)} />
                 <label className="flex items-baseline gap-1 px-0.5">
                     <span className="sr-only">Beats per minute</span>
