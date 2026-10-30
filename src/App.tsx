@@ -1,17 +1,17 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Dashboard } from './components/Dashboard'
-import { useUrlState } from './hooks/useUrlState'
+import { useUrlSync } from './hooks/useUrlState'
 import { isOutputWindow, useOutputSource } from './engine/sync'
 import { OutputView } from './components/Live'
 
 function Home() {
-  useUrlState()
+  useUrlSync()
   useOutputSource()
   return <Dashboard />
 }
 
+// The pop-out mirrors the main window and keeps its own URL
 function Output() {
-  useUrlState({ write: false })
   return <OutputView />
 }
 

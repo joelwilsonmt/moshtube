@@ -35,8 +35,11 @@ export function StatusLine({ className = '' }: { className?: string }) {
 
 export async function copyLink() {
     try {
-        await navigator.clipboard.writeText(window.location.href)
-        announce('Link copied. Anyone who opens it gets this exact mix.')
+        // Recipients land in the viewer first, with a Remix button into the mixer
+        const url = new URL(window.location.href)
+        url.searchParams.set('view', '1')
+        await navigator.clipboard.writeText(url.toString())
+        announce('Link copied. It opens this exact mix, with a button to remix it.')
     } catch {
         announce('Could not copy. Copy the address bar instead.')
     }

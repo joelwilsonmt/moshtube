@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { getPlayer } from '../engine/players'
 import type { SourceId } from '../store/schema'
 import { getVideoTitle } from '../utils/youtube'
+import { IDLE_TIMEOUT_MS } from '../utils/config'
 
 // Calls `fn` every animation frame; for imperative UI (meters, live markers)
 export function useFrame(fn: () => void) {
@@ -54,4 +55,26 @@ export function useMediaQuery(query: string) {
         return () => mql.removeEventListener('change', onChange)
     }, [query])
     return matches
+}
+
+// True after a few seconds without pointer or key input (hides overlays on the output)
+export function useIdle(enabled: boolean) {
+    const [idle, setIdle] = useState(false)
+    useEffect(() => {
+        if (!enabled) return setIdle(false)
+        let timeout: ReturnType<typeof setTimeout>
+        const reset = () => {
+            setIdle(false)
+            clearTimeout(timeout)
+            timeout = setTimeout(() => setIdle(true), IDLE_TIMEOUT_MS)
+        }
+        const events = ['mousemove', 'keydown', 'pointerdown', 'touchstart']
+        events.forEach((e) => window.addEventListener(e, reset))
+        reset()
+        return () => {
+            events.forEach((e) => window.removeEventListener(e, reset))
+            clearTimeout(timeout)
+        }
+    }, [enabled])
+    return idle
 }

@@ -1,10 +1,10 @@
 import { appStore, updateVideoState, setBlendMode, setMix, setMixOsc, setOverlay } from '../store/appStore'
-import { checkpoint } from '../store/history'
+import { checkpoint, withoutHistory } from '../store/history'
 import { announce } from '../store/uiStore'
 import { BlendModeSchema, OSC_RATES, PatternSchema, type SourceId } from '../store/schema'
 import { EFFECTS, randomEffect } from '../fx/effects'
 import { PATTERN_LABELS } from '../fx/patterns'
-import { loadRandomVideo } from './youtube'
+import { loadRandomVideo, randomPoolId } from './youtube'
 
 const pick = <T,>(arr: readonly T[]) => arr[Math.floor(Math.random() * arr.length)]
 const SOURCES: SourceId[] = ['videoA', 'videoB']
@@ -94,4 +94,18 @@ export const moshMeDaddy = () => {
     const swapped = SOURCES.filter((id) => !appStore.getState()[id].hold)
     swapped.forEach((id) => void loadRandomVideo(id, loop))
     summarize('Mosh Me Daddy', [swapped.length ? `New video: ${swapped.map(letter).join(' + ')}` : null, ...parts])
+}
+
+// A first visit opens on a happy accident instead of a fixed default pair
+export function rollFreshMix() {
+    withoutHistory(() => {
+        for (const id of SOURCES) {
+            updateVideoState(id, { id: randomPoolId(id), start: 15, end: -5, loop: true, lastInteraction: Date.now() })
+            moshEffects(id)
+        }
+        moshMix()
+        moshOverlay(true)
+        moshOutput()
+    })
+    announce('Fresh random mix. Hit Mosh Me Daddy for another.')
 }

@@ -13,6 +13,7 @@ Moshtube is a browser VJ mixer for YouTube. Pick two videos (or let it pick), bl
 - **Layer C** sits on top of both sources: a tempo-synced WebGL pattern (plasma, tunnel, grid, smoke) or a transparent video or GIF from a link.
 - **Presets and your own videos**: save mixes by name, and paste a list of YouTube links for shuffle to use. Both are stored in your browser.
 - **Live use**: fullscreen mode, a pop-out output window for a projector, and MIDI controller mapping (in browsers with Web MIDI).
+- **Shared links** open as a viewer: the mix fills the screen, with a **Remix this** button into the mixer. A visit with no link starts on a fresh random mix.
 - **Phones** get the output, a big Mosh Me Daddy button, play/pause, and undo. The full mixer is on desktop.
 
 ## Keyboard

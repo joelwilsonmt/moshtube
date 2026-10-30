@@ -2,38 +2,18 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useStore } from 'zustand'
 import { Link2, Minimize, Sparkles, Undo2 } from 'lucide-react'
 import { historyStore, undo } from '../store/history'
-import { useMediaQuery } from '../hooks/useLive'
+import { useIdle, useMediaQuery } from '../hooks/useLive'
 import { useShortcuts } from '../hooks/useShortcuts'
 import { useAutoMosh } from '../engine/tempo'
-import { IDLE_TIMEOUT_MS } from '../utils/config'
 import { moshMeDaddy } from '../utils/mosh'
 import { Stage } from './Stage'
+import { ViewerView } from './Viewer'
+import { uiStore } from '../store/uiStore'
 import { copyLink, PlayToggle, StatusLine, TopBar, Wordmark } from './TopBar'
 import { Inspector } from './Inspector'
 import { Mixer } from './Mixer'
 import { MoshCluster } from './MoshCluster'
 import { Button, cn, IconButton } from './ui/core'
-
-function useIdle(enabled: boolean) {
-    const [idle, setIdle] = useState(false)
-    useEffect(() => {
-        if (!enabled) return setIdle(false)
-        let timeout: ReturnType<typeof setTimeout>
-        const reset = () => {
-            setIdle(false)
-            clearTimeout(timeout)
-            timeout = setTimeout(() => setIdle(true), IDLE_TIMEOUT_MS)
-        }
-        const events = ['mousemove', 'keydown', 'pointerdown', 'touchstart']
-        events.forEach((e) => window.addEventListener(e, reset))
-        reset()
-        return () => {
-            events.forEach((e) => window.removeEventListener(e, reset))
-            clearTimeout(timeout)
-        }
-    }, [enabled])
-    return idle
-}
 
 function DesktopView() {
     const stageRef = useRef<HTMLDivElement>(null)
@@ -114,5 +94,7 @@ function MobileView() {
 export function Dashboard() {
     useAutoMosh()
     const isPhone = useMediaQuery('(max-width: 767px)')
+    const viewer = useStore(uiStore, (s) => s.viewer)
+    if (viewer) return <ViewerView />
     return isPhone ? <MobileView /> : <DesktopView />
 }

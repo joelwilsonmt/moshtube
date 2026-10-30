@@ -107,6 +107,12 @@ const poolFor = (target: Target) => {
 const isPoolId = (id: string) =>
     SOURCE_A_IDS.includes(id) || SOURCE_B_IDS.includes(id) || libraryStore.getState().pool.includes(id)
 
+// Synchronous pick for the first render; the player's onError reroll covers a dead one
+export function randomPoolId(target: Target) {
+    const pool = poolFor(target).filter((id) => embeddable.get(id) !== false)
+    return pool[Math.floor(Math.random() * pool.length)]
+}
+
 async function pickRandomId(target: Target): Promise<string | null> {
     const current = appStore.getState()[target].id
     const candidates = shuffle(poolFor(target).filter(id => id !== current && embeddable.get(id) !== false))
