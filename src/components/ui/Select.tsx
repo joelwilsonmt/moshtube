@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useSelect } from 'downshift'
 import { Check, ChevronDown } from 'lucide-react'
 import { focusedByKeyboard } from '../../engine/modality'
+import { shortcutsStore } from '../../hooks/useShortcuts'
 import { cn } from './core'
 
 export interface SelectOption<T extends string | number> {
@@ -90,7 +91,7 @@ export function Select<T extends string | number>({
         onKeyDown: (e) => {
             const native = e.nativeEvent as KeyboardEvent & { preventDownshiftDefault?: boolean }
             // Closed: app shortcut keys go to the app, not to type-ahead
-            if (!isOpen && SHORTCUT_KEYS.has(e.key)) native.preventDownshiftDefault = true
+            if (!isOpen && SHORTCUT_KEYS.has(e.key) && shortcutsStore.getState().enabled) native.preventDownshiftDefault = true
             // Reached by mouse, Space means play/pause like everywhere else; by Tab, it opens
             if (!isOpen && e.key === ' ' && !focusedByKeyboard()) native.preventDownshiftDefault = true
             // Open: Escape closes only this menu, not a popover around it

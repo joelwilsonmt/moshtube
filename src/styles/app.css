@@ -179,7 +179,7 @@
   width: 160vmax;
   height: 160vmax;
   border-radius: 50%;
-  border: 1.2vmax solid oklch(0.7 0.16 300);
+  border: 1.2vmax solid oklch(var(--dim));
   animation: swap-ring 2.4s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) {

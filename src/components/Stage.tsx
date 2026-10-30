@@ -6,7 +6,7 @@ import type { AppState, SourceId, VideoState } from '../store/schema'
 import { applyFx, FxDefs, wave } from '../fx/effects'
 import { beatsNow } from '../engine/clock'
 import { getPlayer, registerPlayer } from '../engine/players'
-import { swapStore } from '../engine/swap'
+import { setSwap } from '../engine/swap'
 import { handlePlayerError } from '../utils/youtube'
 import { useVideoTitle } from '../hooks/useLive'
 import { OverlayLayer } from './OverlayLayer'
@@ -39,12 +39,13 @@ interface SlotProps {
     id: SourceId
     videoId: string
     active: boolean // the slot that follows the store; an outgoing slot just keeps playing
+    onPlaying: () => void
     onRevealed: () => void
 }
 
 // One YouTube player. It holds at black until its video has played long enough for
 // YouTube's own glyph to clear, then fades in over whatever is underneath.
-function PlayerSlot({ id, videoId, active: activeSlot, onRevealed }: SlotProps) {
+function PlayerSlot({ id, videoId, active: activeSlot, onPlaying, onRevealed }: SlotProps) {
     // Only the slot showing the store's current video takes commands; an outgoing one
     // must not seek to the next video's loop start during the render that swaps them
     const isCurrent = useStore(appStore, (s) => s[id].id === videoId)
@@ -69,7 +70,7 @@ function PlayerSlot({ id, videoId, active: activeSlot, onRevealed }: SlotProps) 
     useFxLoop(() => {
         const el = slotRef.current
         if (!el) return
-        fadeRef.current += ((readyRef.current ? 1 : 0) - fadeRef.current) * 0.08
+        fadeRef.current += ((readyRef.current ? 1 : 0) - fadeRef.current) * 0.12
         if (fadeRef.current > 0.995) fadeRef.current = 1
         el.style.opacity = String(fadeRef.current)
         // Chrome can still paint a cross-origin YouTube iframe under opacity 0 (its own
@@ -159,6 +160,7 @@ function PlayerSlot({ id, videoId, active: activeSlot, onRevealed }: SlotProps) 
 
     const onStateChange: YouTubeProps['onStateChange'] = (e) => {
         // YouTube's own play/pause glyph lingers for a few seconds after playback starts
+        if (e.data === 1) onPlaying()
         if (e.data === 1 && !readyRef.current && !revealTimer.current) {
             revealTimer.current = setTimeout(() => { readyRef.current = true }, REVEAL_DELAY_MS)
         }
@@ -193,6 +195,7 @@ function PlayerSlot({ id, videoId, active: activeSlot, onRevealed }: SlotProps) 
 interface Slot {
     n: number
     videoId: string
+    playing: boolean // has started; it will fade in on its own even if superseded
     revealed: boolean
 }
 
@@ -207,7 +210,7 @@ function Layer({ id, isTop }: LayerProps) {
     const videoId = useStore(appStore, (s) => s[id].id)
     const effects = useStore(appStore, (s) => s[id].effects)
     const blendMode = useStore(appStore, (s) => s.blendMode)
-    const [slots, setSlots] = useState<Slot[]>(() => (videoId ? [{ n: 0, videoId, revealed: false }] : []))
+    const [slots, setSlots] = useState<Slot[]>(() => (videoId ? [{ n: 0, videoId, playing: false, revealed: false }] : []))
     const wrapRef = useRef<HTMLDivElement>(null)
     const scanRef = useRef<HTMLDivElement>(null)
 
@@ -216,14 +219,21 @@ function Layer({ id, isTop }: LayerProps) {
         setSlots((current) => {
             const latest = current[current.length - 1]
             if (latest?.videoId === videoId) return current
-            const shown = [...current].reverse().find((s) => s.revealed)
-            return [...(shown ? [shown] : []), { n: (latest?.n ?? 0) + 1, videoId, revealed: false }]
+            // Keep the best video to cover the wait: one already shown, else one already
+            // playing (it will reveal itself shortly), else whatever was loading
+            const newestFirst = [...current].reverse()
+            const hold = newestFirst.find((s) => s.revealed) ?? newestFirst.find((s) => s.playing) ?? latest
+            return [...(hold ? [hold] : []), { n: (latest?.n ?? 0) + 1, videoId, playing: false, revealed: false }]
         })
     }, [videoId])
 
     useEffect(() => {
-        swapStore.setState({ [id]: slots.some((s) => !s.revealed) })
+        const shown = [...slots].reverse().find((s) => s.revealed)
+        setSwap(id, slots.some((s) => !s.revealed), shown?.videoId)
     }, [slots, id])
+
+    const playingNow = (n: number) =>
+        setSlots((current) => (current.some((s) => s.n === n && !s.playing) ? current.map((s) => (s.n === n ? { ...s, playing: true } : s)) : current))
 
     const revealed = (n: number) =>
         setSlots((current) => current.filter((s) => s.n >= n).map((s) => (s.n === n ? { ...s, revealed: true } : s)))
@@ -253,6 +263,7 @@ function Layer({ id, isTop }: LayerProps) {
                     id={id}
                     videoId={slot.videoId}
                     active={i === slots.length - 1}
+                    onPlaying={() => playingNow(slot.n)}
                     onRevealed={() => revealed(slot.n)}
                 />
             ))}

@@ -1,9 +1,27 @@
 import { useEffect } from 'react'
+import { createStore } from 'zustand/vanilla'
 import { appStore, setAutoMosh, setOutputPlaying } from '../store/appStore'
 import { tap } from '../engine/tempo'
 import { focusedByKeyboard } from '../engine/modality'
 import { redo, undo } from '../store/history'
 import { moshEverything, moshGlobal, moshMeDaddy } from '../utils/mosh'
+
+// Single-key shortcuts can be switched off (WCAG 2.1.4), remembered in this browser
+const SHORTCUTS_KEY = 'moshtube:shortcuts'
+const loadEnabled = () => {
+    try {
+        return localStorage.getItem(SHORTCUTS_KEY) !== 'off'
+    } catch {
+        return true
+    }
+}
+export const shortcutsStore = createStore(() => ({ enabled: loadEnabled() }))
+export function setShortcutsEnabled(enabled: boolean) {
+    shortcutsStore.setState({ enabled })
+    try {
+        localStorage.setItem(SHORTCUTS_KEY, enabled ? 'on' : 'off')
+    } catch { /* setting lasts for this session only */ }
+}
 
 export const SHORTCUTS = [
     { keys: '1', action: 'Mosh: new effects' },
@@ -38,6 +56,7 @@ export function useShortcuts(handlers: { fullscreen: () => void }) {
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             // A control (e.g. a dropdown) already handled this key
+            if (!shortcutsStore.getState().enabled) return
             if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || e.repeat || isTyping(e.target)) return
             if (e.key === ' ' && ownsSpace(e.target)) return
             const actions: Record<string, () => void> = {

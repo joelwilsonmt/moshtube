@@ -1,7 +1,8 @@
 import { appStore, updateVideoState, setBlendMode, setMix, setMixOsc, setOverlay } from '../store/appStore'
 import { checkpoint, withoutHistory } from '../store/history'
 import { announce, flashChanged } from '../store/uiStore'
-import { BlendModeSchema, OSC_RATES, PatternSchema, type SourceId } from '../store/schema'
+import { BlendModeSchema, OSC_RATES, PatternSchema, type EffectType, type SourceId } from '../store/schema'
+import { BLEND_LABELS } from '../components/options'
 import { EFFECTS, MAX_EFFECTS, randomEffect } from '../fx/effects'
 import { PATTERN_LABELS } from '../fx/patterns'
 import { BUILT_IN_LOTTIES, isBuiltInLottie, LOTTIE_LABELS } from '../fx/lotties'
@@ -59,9 +60,10 @@ function moshMix(): Change[] {
     const { locks } = appStore.getState()
     const parts: Change[] = []
     if (!locks.blend) {
+        const before = appStore.getState().blendMode
         const mode = pick(BlendModeSchema.options)
         setBlendMode(mode)
-        parts.push({ id: 'master', text: `Blend: ${mode[0].toUpperCase()}${mode.slice(1)}` })
+        if (mode !== before) parts.push({ id: 'master', text: `Blend: ${BLEND_LABELS[mode]}` })
     }
     if (!locks.mix) {
         setMix(0.35 + Math.random() * 0.65)
@@ -75,7 +77,9 @@ function moshMix(): Change[] {
 // Output effects ride with the blend under the Master lock
 function moshOutput(): Change {
     if (appStore.getState().locks.blend) return null
-    const effects = Math.random() < 0.35 ? [randomEffect()] : []
+    // With Layer C on, skip output effects that flatten everything, so the videos stay readable
+    const heavy: EffectType[] = appStore.getState().overlay.kind !== 'off' ? ['threshold', 'xray', 'ink', 'posterize', 'duotone', 'solarize'] : []
+    const effects = Math.random() < 0.35 ? [randomEffect(heavy)] : []
     appStore.setState({ masterEffects: effects })
     return effects.length ? { id: 'master', text: `Output: ${EFFECTS[effects[0].type].label}` } : null
 }
@@ -86,7 +90,8 @@ const OVERLAY_BLENDS = ['screen', 'overlay', 'difference'] as const
 function moshOverlay(canToggle: boolean): Change {
     const overlay = appStore.getState().overlay
     if (overlay.hold) return null
-    const look = { blend: pick(OVERLAY_BLENDS), opacity: 0.3 + Math.random() * 0.4 }
+    // Random rolls keep Layer C a garnish (25–45%); set by hand it can go anywhere
+    const look = { blend: pick(OVERLAY_BLENDS), opacity: 0.25 + Math.random() * 0.2 }
     // Someone's own video or Lottie link is kept; only its look changes
     if (overlay.kind === 'media' || (overlay.kind === 'lottie' && !isBuiltInLottie(overlay.lottie))) {
         setOverlay(look)
