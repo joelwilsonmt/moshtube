@@ -22,7 +22,7 @@ export const BlendModeSchema = z.enum([
   'exclusion'
 ])
 
-export const PatternSchema = z.enum(['plasma', 'tunnel', 'grid', 'noise'])
+export const PatternSchema = z.enum(['plasma', 'tunnel', 'grid', 'noise', 'kaleido', 'warp', 'ripple', 'moire', 'cells', 'lava'])
 
 // Layer C: our own content composited over A/B (generative patterns or a transparent video/GIF)
 export const OverlaySchema = z.object({

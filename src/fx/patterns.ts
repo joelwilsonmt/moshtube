@@ -74,6 +74,94 @@ void main() {
     float lit = smoothstep(0.35, 0.85, v);
     gl_FragColor = vec4(hsv(uHue + v * 0.2, 0.7, lit * (0.8 + 0.2 * pulse())), 1.0);
 }`,
+    kaleido: `
+void main() {
+    vec2 p = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+    float seg = 6.2831853 / 8.0;
+    float a = abs(mod(atan(p.y, p.x) + uBeats * 0.03, seg) - seg * 0.5);
+    vec2 q = vec2(cos(a), sin(a)) * length(p);
+    float v = fbm(q * 4.0 + vec2(uBeats * 0.05, -uBeats * 0.02));
+    float edge = smoothstep(0.45, 0.75, v);
+    gl_FragColor = vec4(hsv(uHue + v * 0.3, 0.75, edge * (0.75 + 0.25 * pulse())), 1.0);
+}`,
+    warp: `
+void main() {
+    vec2 p = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+    vec3 col = vec3(0.0);
+    // Four depth layers fly toward the viewer; stars stretch into streaks as they near
+    for (int i = 0; i < 4; i++) {
+        float layer = float(i);
+        float depth = fract(uBeats * 0.125 + layer / 4.0);
+        vec2 g = p * mix(14.0, 1.2, depth) + layer * 17.3;
+        vec2 id = floor(g);
+        float h = hash(id);
+        if (h > 0.55) {
+            vec2 off = vec2(hash(id + 1.3), hash(id + 2.7)) - 0.5;
+            vec2 d = fract(g) - 0.5 - off * 0.6;
+            vec2 dir = normalize(p + 0.0001);
+            float along = dot(d, dir);
+            float across = length(d - dir * along);
+            float len = 0.02 + depth * depth * 0.25;
+            float star = smoothstep(0.035 + depth * 0.03, 0.0, across) * smoothstep(len, 0.0, abs(along));
+            col += hsv(uHue + h * 0.15, 0.35, star * 2.2 * depth * smoothstep(1.0, 0.8, depth));
+        }
+    }
+    gl_FragColor = vec4(col * (0.8 + 0.2 * pulse()), 1.0);
+}`,
+    ripple: `
+void main() {
+    vec2 p = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+    float r = length(p);
+    float rings = smoothstep(0.6, 1.0, sin(r * 40.0 - uBeats * 3.14159)) * exp(-r * 1.5);
+    float beat = fract(uBeats);
+    float shock = exp(-pow((r - beat * 1.2) * 12.0, 2.0)) * (1.0 - beat);
+    gl_FragColor = vec4(hsv(uHue + r * 0.1, 0.7, rings * 0.6 + shock), 1.0);
+}`,
+    moire: `
+void main() {
+    vec2 p = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+    vec2 c = vec2(sin(uBeats * 0.11), cos(uBeats * 0.07)) * 0.3;
+    float a = sin(length(p - c) * 90.0);
+    float b = sin(length(p + c) * 90.0);
+    float v = smoothstep(0.2, 0.9, a * b);
+    gl_FragColor = vec4(hsv(uHue + 0.5 * step(0.0, a), 0.6, v * (0.7 + 0.3 * pulse())), 1.0);
+}`,
+    cells: `
+void main() {
+    vec2 uv = gl_FragCoord.xy / uRes.y * 5.0;
+    vec2 i = floor(uv), f = fract(uv);
+    float d1 = 8.0, d2 = 8.0, cell = 0.0;
+    for (int y = -1; y <= 1; y++) {
+        for (int x = -1; x <= 1; x++) {
+            vec2 o = vec2(float(x), float(y));
+            vec2 h = vec2(hash(i + o), hash(i + o + 5.1));
+            vec2 pt = o + 0.5 + 0.4 * sin(uBeats * 0.25 + 6.2831 * h) - f;
+            float d = dot(pt, pt);
+            if (d < d1) { d2 = d1; d1 = d; cell = hash(i + o + 9.7); }
+            else if (d < d2) { d2 = d; }
+        }
+    }
+    float edge = 1.0 - smoothstep(0.0, 0.06, sqrt(d2) - sqrt(d1));
+    // A few cells light up on each beat
+    float flash = step(0.85, fract(cell * 7.0 + floor(uBeats) * 0.37)) * pulse();
+    gl_FragColor = vec4(hsv(uHue + cell * 0.2, 0.7, edge * 0.9 + flash * 0.6), 1.0);
+}`,
+    lava: `
+void main() {
+    vec2 p = gl_FragCoord.xy / uRes.y;
+    float aspect = uRes.x / uRes.y;
+    float field = 0.0;
+    for (int i = 0; i < 6; i++) {
+        float fi = float(i);
+        vec2 c = vec2(aspect * (0.5 + 0.4 * sin(uBeats * 0.07 * (1.0 + fi * 0.3) + fi * 1.7)),
+                      0.5 + 0.4 * cos(uBeats * 0.05 * (1.0 + fi * 0.2) + fi * 2.3));
+        field += 0.03 / dot(p - c, p - c);
+    }
+    float body = smoothstep(0.9, 1.1, field);
+    float rim = smoothstep(0.75, 1.0, field) - body;
+    float depth = clamp((field - 1.0) * 0.15, 0.0, 1.0); // capped so blob cores don't cycle hue
+    gl_FragColor = vec4(hsv(uHue + depth * 0.08, 0.8 - depth * 0.3, (body * (0.6 + depth * 0.4) + rim * 0.7) * (0.8 + 0.2 * pulse())), 1.0);
+}`,
 }
 
 export const PATTERN_LABELS: Record<Pattern, string> = {
@@ -81,6 +169,12 @@ export const PATTERN_LABELS: Record<Pattern, string> = {
     tunnel: 'Tunnel',
     grid: 'Grid',
     noise: 'Smoke',
+    kaleido: 'Kaleidoscope',
+    warp: 'Warp',
+    ripple: 'Ripple',
+    moire: 'Moiré',
+    cells: 'Cells',
+    lava: 'Lava',
 }
 
 const VERTEX = `
