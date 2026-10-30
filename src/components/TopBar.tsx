@@ -6,6 +6,7 @@ import { announce, uiStore } from '../store/uiStore'
 import { Button, IconButton } from './ui/core'
 import { ShortcutsButton, Tempo } from './Tempo'
 import { PresetsMenu } from './Library'
+import { MidiMenu, PopOutButton } from './Live'
 
 const STATUS_MS = 4000
 
@@ -58,6 +59,8 @@ export function TopBar({ onFullscreen }: { onFullscreen: () => void }) {
                     <Link2 size={15} aria-hidden="true" />
                     <span className="max-[1399px]:sr-only">Copy link</span>
                 </Button>
+                <MidiMenu />
+                <PopOutButton />
                 <IconButton icon={Maximize} label="Fullscreen (F)" onClick={onFullscreen} />
                 <ShortcutsButton />
                 <a

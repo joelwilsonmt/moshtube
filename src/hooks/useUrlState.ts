@@ -2,7 +2,8 @@ import { useEffect } from 'react'
 import { appStore } from '../store/appStore'
 import { serializeState, deserializeState } from '../utils/serialization'
 
-export function useUrlState() {
+// `write: false` hydrates only (the pop-out output must keep its own URL)
+export function useUrlState({ write = true } = {}) {
   // 1. Hydrate from URL on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -18,6 +19,7 @@ export function useUrlState() {
 
   // 2. Sync to URL on change
   useEffect(() => {
+    if (!write) return
     let timeout: ReturnType<typeof setTimeout>
     const unsub = appStore.subscribe((state) => {
          clearTimeout(timeout)
@@ -37,5 +39,5 @@ export function useUrlState() {
          unsub()
          clearTimeout(timeout)
      }
-  }, [])
+  }, [write])
 }

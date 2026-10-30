@@ -23,6 +23,13 @@ export function resetPhase() {
   anchorTime = performance.now()
 }
 
+// Align with a clock from another window (pop-out output); timestamps are wall-clock ms
+export function syncClock(beats: number, sentAt: number) {
+  const lag = outputPlaying ? ((Date.now() - sentAt) * bpm) / 60000 : 0
+  anchorBeats = beats + lag
+  anchorTime = performance.now()
+}
+
 appStore.subscribe((state) => {
   if (state.bpm !== bpm || state.outputPlaying !== outputPlaying) {
     reanchor()
