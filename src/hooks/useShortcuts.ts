@@ -18,13 +18,14 @@ export const SHORTCUTS = [
     { keys: '?', action: 'Show shortcuts' },
 ] as const
 
-// Only text entry swallows shortcuts; sliders, checkboxes and buttons don't type
+// Only text entry and open dropdowns swallow shortcuts; sliders, checkboxes and buttons don't type
 const TEXT_INPUTS = ['text', 'search', 'url', 'email', 'number', 'password', 'tel']
 const isTyping = (el: EventTarget | null) =>
     el instanceof HTMLElement &&
     (el.isContentEditable ||
         el.tagName === 'TEXTAREA' ||
         el.tagName === 'SELECT' ||
+        (el.getAttribute('role') === 'combobox' && el.getAttribute('aria-expanded') === 'true') ||
         (el instanceof HTMLInputElement && TEXT_INPUTS.includes(el.type)))
 
 // Space activates a button reached by Tab; after a mouse click it means play/pause
@@ -36,7 +37,8 @@ const ownsSpace = (el: EventTarget | null) =>
 export function useShortcuts(handlers: { fullscreen: () => void }) {
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
-            if (e.metaKey || e.ctrlKey || e.altKey || e.repeat || isTyping(e.target)) return
+            // A control (e.g. a dropdown) already handled this key
+            if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || e.repeat || isTyping(e.target)) return
             if (e.key === ' ' && ownsSpace(e.target)) return
             const actions: Record<string, () => void> = {
                 '1': moshGlobal,

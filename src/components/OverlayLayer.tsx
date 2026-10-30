@@ -8,6 +8,7 @@ import { createPatternRenderer } from '../fx/patterns'
 import { builtInLottie, isBuiltInLottie } from '../fx/lotties'
 import type { AnimationItem } from 'lottie-web'
 import { cn } from './ui/core'
+import { Link2 } from 'lucide-react'
 
 // Load errors for layer C media, shown in the inspector
 export const overlayErrorStore = createStore(() => ({ error: null as string | null }))
@@ -107,6 +108,37 @@ export function LottieView({ source, reportErrors = true }: { source: string; re
     }, [source, reportErrors])
 
     return <div ref={ref} className={cn('h-full w-full', builtIn && 'lottie-tint')} style={builtIn ? { color: `hsl(${hue} 90% 65%)` } : undefined} />
+}
+
+// Still frame of a built-in animation for menus; a link glyph for "your own"
+export function LottieThumb({ name, hue }: { name: string; hue: number }) {
+    const ref = useRef<HTMLDivElement>(null)
+    useEffect(() => {
+        const container = ref.current
+        if (!container || !isBuiltInLottie(name)) return
+        let anim: AnimationItem | null = null
+        let cancelled = false
+        void import('lottie-web/build/player/lottie_light').then(({ default: lottie }) => {
+            if (cancelled) return
+            anim = lottie.loadAnimation({
+                container,
+                renderer: 'svg',
+                loop: false,
+                autoplay: false,
+                animationData: structuredClone(builtInLottie(name)),
+                rendererSettings: { preserveAspectRatio: 'xMidYMid slice' },
+            })
+            anim.addEventListener('DOMLoaded', () => anim?.goToAndStop(Math.round(anim.totalFrames * 0.3), true))
+        })
+        return () => {
+            cancelled = true
+            anim?.destroy()
+        }
+    }, [name])
+    if (!isBuiltInLottie(name)) {
+        return <span className="flex h-5 w-9 items-center justify-center rounded-sm bg-rack text-dim"><Link2 size={12} aria-hidden="true" /></span>
+    }
+    return <div ref={ref} aria-hidden="true" className="lottie-tint h-5 w-9 overflow-hidden rounded-sm bg-black" style={{ color: `hsl(${hue} 90% 65%)` }} />
 }
 
 export function OverlayLayer() {

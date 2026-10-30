@@ -3,10 +3,10 @@ import { useStore } from 'zustand'
 import { Shuffle } from 'lucide-react'
 import { appStore, setBlendMode, setOverlay, updateVideoState } from '../store/appStore'
 import { PATTERN_LABELS } from '../fx/patterns'
-import { overlayErrorStore } from './OverlayLayer'
+import { LottieThumb, overlayErrorStore } from './OverlayLayer'
 import { checkpoint } from '../store/history'
 import { uiStore } from '../store/uiStore'
-import { BlendModeSchema, PatternSchema, type BlendMode, type Overlay, type Pattern, type SourceId } from '../store/schema'
+import { PatternSchema, type Pattern, type SourceId } from '../store/schema'
 import { usePlayhead, useVideoTitle } from '../hooks/useLive'
 import { formatTime, parseTime } from '../utils/time'
 import { loadRandomVideo, parseYouTubeId, videoErrorStore } from '../utils/youtube'
@@ -14,7 +14,8 @@ import { DualRangeSlider } from './ui/DualRangeSlider'
 import { Button, Field, IconButton, Input, Range, Section, Segmented, Select } from './ui/core'
 import { EffectStack } from './EffectStack'
 import { MyVideos } from './Library'
-import { BLEND_HINTS, BLEND_LABELS, LAYER, LayerChip, rateLabel } from './Mixer'
+import { LAYER, LayerChip } from './Mixer'
+import { BLEND_HINTS, blendOptions, rateOptions } from './options'
 import { BUILT_IN_LOTTIES, isBuiltInLottie, LOTTIE_LABELS } from '../fx/lotties'
 
 // Commits on blur or Enter; shows the formatted value otherwise
@@ -179,16 +180,15 @@ function LottieControls() {
                     <Select
                         id={fieldId}
                         value={custom ? CUSTOM : overlay.lottie}
-                        onChange={(e) => {
-                            if (e.target.value === CUSTOM) return setCustom(true)
+                        options={[...BUILT_IN_LOTTIES.map((name) => ({ value: name as string, label: LOTTIE_LABELS[name] })), { value: CUSTOM, label: 'Your own (link)…' }]}
+                        renderLeading={(o) => <LottieThumb name={o.value} hue={overlay.hue} />}
+                        onChange={(value) => {
+                            if (value === CUSTOM) return setCustom(true)
                             setCustom(false)
                             checkpoint('Lottie change')
-                            setOverlay({ lottie: e.target.value })
+                            setOverlay({ lottie: value })
                         }}
-                    >
-                        {BUILT_IN_LOTTIES.map((name) => <option key={name} value={name}>{LOTTIE_LABELS[name]}</option>)}
-                        <option value={CUSTOM}>Your own (link)…</option>
-                    </Select>
+                    />
                 )}
             </Field>
             {custom && (
@@ -221,9 +221,7 @@ function LottieControls() {
             )}
             <Field label="One loop lasts">
                 {(fieldId) => (
-                    <Select id={fieldId} value={overlay.loopBeats} onChange={(e) => setOverlay({ loopBeats: Number(e.target.value) })}>
-                        {LOOP_BEATS.map((b) => <option key={b} value={b}>{rateLabel(b)}</option>)}
-                    </Select>
+                    <Select id={fieldId} value={overlay.loopBeats} options={rateOptions(LOOP_BEATS)} onChange={(loopBeats) => setOverlay({ loopBeats })} />
                 )}
             </Field>
             {builtIn && !custom && (
@@ -261,9 +259,12 @@ function OverlayInspector() {
                     <>
                         <Field label="Pattern">
                             {(fieldId) => (
-                                <Select id={fieldId} value={overlay.pattern} onChange={(e) => { checkpoint('pattern change'); setOverlay({ pattern: e.target.value as Pattern }) }}>
-                                    {PatternSchema.options.map((p) => <option key={p} value={p}>{PATTERN_LABELS[p]}</option>)}
-                                </Select>
+                                <Select
+                                    id={fieldId}
+                                    value={overlay.pattern}
+                                    options={PatternSchema.options.map((p) => ({ value: p, label: PATTERN_LABELS[p] }))}
+                                    onChange={(pattern: Pattern) => { checkpoint('pattern change'); setOverlay({ pattern }) }}
+                                />
                             )}
                         </Field>
                         <Field label="Hue" value={`${Math.round(overlay.hue)}°`}>
@@ -316,9 +317,7 @@ function OverlayInspector() {
                     </Field>
                     <Field label="Blend">
                         {(fieldId) => (
-                            <Select id={fieldId} value={overlay.blend} onChange={(e) => { checkpoint('Layer C blend'); setOverlay({ blend: e.target.value as Overlay['blend'] }) }}>
-                                {BlendModeSchema.options.map((m) => <option key={m} value={m}>{BLEND_LABELS[m]}</option>)}
-                            </Select>
+                            <Select id={fieldId} value={overlay.blend} options={blendOptions.map(({ short, ...o }) => o)} onChange={(blend) => { checkpoint('Layer C blend'); setOverlay({ blend }) }} />
                         )}
                     </Field>
                 </Section>
@@ -333,9 +332,7 @@ function MasterBlend() {
         <Section title="Blend">
             <Field label="How the top source mixes with the one below">
                 {(fieldId) => (
-                    <Select id={fieldId} value={blendMode} aria-describedby="blend-hint" onChange={(e) => { checkpoint('blend change'); setBlendMode(e.target.value as BlendMode) }}>
-                        {BlendModeSchema.options.map((m) => <option key={m} value={m}>{BLEND_LABELS[m]}</option>)}
-                    </Select>
+                    <Select id={fieldId} value={blendMode} aria-describedby="blend-hint" options={blendOptions.map(({ short, ...o }) => o)} onChange={(mode) => { checkpoint('blend change'); setBlendMode(mode) }} />
                 )}
             </Field>
             <p id="blend-hint" className="text-xs text-dim">{BLEND_HINTS[blendMode]}</p>

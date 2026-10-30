@@ -91,23 +91,17 @@ export function Tempo() {
                         <Select
                             aria-label="Auto-mosh interval"
                             value={Math.max(auto.bars, minBarsFor(auto.scope))}
-                            onChange={(e) => setAutoMosh({ bars: Number(e.target.value) })}
-                            className="flex-1 text-xs"
-                        >
-                            {AUTO_MOSH_BARS.map((b) => (
-                                <option key={b} value={b} disabled={b < minBarsFor(auto.scope)}>
-                                    Every {b === 1 ? 'bar' : `${b} bars`}
-                                </option>
-                            ))}
-                        </Select>
+                            options={AUTO_MOSH_BARS.map((b) => ({ value: b, label: `Every ${b === 1 ? 'bar' : `${b} bars`}`, disabled: b < minBarsFor(auto.scope) }))}
+                            onChange={(bars) => setAutoMosh({ bars })}
+                            className="flex-1"
+                        />
                         <Select
                             aria-label="Auto-mosh randomizer"
                             value={auto.scope}
-                            onChange={(e) => setAutoMosh({ scope: e.target.value as MoshScope })}
-                            className="flex-1 text-xs"
-                        >
-                            {MoshScopeSchema.options.map((s) => <option key={s} value={s}>{MOSH_SCOPES[s].label}</option>)}
-                        </Select>
+                            options={MoshScopeSchema.options.map((s) => ({ value: s, label: MOSH_SCOPES[s].label }))}
+                            onChange={(scope: MoshScope) => setAutoMosh({ scope })}
+                            className="flex-1"
+                        />
                     </div>
                 </div>
             </div>

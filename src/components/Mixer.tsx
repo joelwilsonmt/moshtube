@@ -5,7 +5,7 @@ import { appStore, setBlendMode, setLock, setMix, setMixOsc, setOverlay, swapLay
 import { PATTERN_LABELS } from '../fx/patterns'
 import { select, uiStore } from '../store/uiStore'
 import { checkpoint, sliderCheckpoint } from '../store/history'
-import { BlendModeSchema, OSC_RATES, WaveShapeSchema, type AppState, type Effect, type SourceId } from '../store/schema'
+import type { AppState, Effect, SourceId } from '../store/schema'
 import { EFFECTS, liveAmount, normalizedAmount } from '../fx/effects'
 import { beatsNow } from '../engine/clock'
 import { useChangedFlash, useFrame, usePlayhead, useVideoTitle } from '../hooks/useLive'
@@ -13,6 +13,7 @@ import { thumbnailUrl, videoErrorStore } from '../utils/youtube'
 import { moshVideo } from '../utils/mosh'
 import { liveMix } from './Stage'
 import { cn, IconButton, Select, Toggle } from './ui/core'
+import { BLEND_LABELS, blendOptions, rateOptions, shapeOptions } from './options'
 import { MoshCluster } from './MoshCluster'
 import { LottieView, MediaView, PatternCanvas } from './OverlayLayer'
 import { isBuiltInLottie, LOTTIE_LABELS } from '../fx/lotties'
@@ -24,27 +25,8 @@ export const LAYER = {
     master: { letter: 'M', name: 'Master', bg: 'bg-layer-m', token: '--layer-m' },
 } as const
 
-export const BLEND_LABELS: Record<AppState['blendMode'], string> = {
-    normal: 'Normal',
-    multiply: 'Multiply (darker)',
-    screen: 'Screen (brighter)',
-    overlay: 'Overlay (contrast)',
-    difference: 'Difference (invert)',
-    exclusion: 'Exclusion (soft invert)',
-}
 
-// One line on what each blend does to the picture, for the Master inspector
-export const BLEND_HINTS: Record<AppState['blendMode'], string> = {
-    normal: 'The top source covers the one below; the crossfade fades between them.',
-    multiply: 'Darks from both sources stack up. Black wins, white disappears.',
-    screen: 'Lights from both sources add up. White wins, black disappears.',
-    overlay: 'Boosts contrast: brights get brighter and darks darker where they meet.',
-    difference: 'Subtracts one source from the other, so matching areas go black and colors invert.',
-    exclusion: 'Like Difference but softer and grayer.',
-}
 
-export const rateLabel = (beats: number) =>
-    beats < 4 ? `${beats} beat${beats === 1 ? '' : 's'}` : `${beats / 4} bar${beats === 4 ? '' : 's'}`
 
 // Highest live intensity across a stack, 0..1
 export function stackLevel(effects: Effect[], beats: number) {
@@ -241,20 +223,20 @@ function Crossfader() {
                 <Toggle pressed={mixOsc.on} onChange={(on) => setMixOsc({ on })}>Oscillate</Toggle>
                 <Select
                     aria-label="Crossfade oscillation rate"
+                    size="sm"
                     value={mixOsc.rate}
-                    onChange={(e) => setMixOsc({ rate: Number(e.target.value) })}
-                    className="h-7 w-auto min-w-0 flex-1 pr-6 text-xs"
-                >
-                    {OSC_RATES.map((r) => <option key={r} value={r}>{rateLabel(r)}</option>)}
-                </Select>
+                    options={rateOptions()}
+                    onChange={(rate) => setMixOsc({ rate })}
+                    className="min-w-0 flex-1"
+                />
                 <Select
                     aria-label="Crossfade oscillation shape"
+                    size="sm"
                     value={mixOsc.shape}
-                    onChange={(e) => setMixOsc({ shape: e.target.value as AppState['mixOsc']['shape'] })}
-                    className="h-7 w-auto min-w-0 flex-1 pr-6 text-xs capitalize max-[1279px]:hidden"
-                >
-                    {WaveShapeSchema.options.map((s) => <option key={s} value={s}>{s}</option>)}
-                </Select>
+                    options={shapeOptions}
+                    onChange={(shape) => setMixOsc({ shape })}
+                    className="min-w-0 flex-1 max-[1279px]:hidden"
+                />
             </div>
         </section>
     )
@@ -333,10 +315,8 @@ function MasterStrip() {
             <div className="flex flex-1 gap-2">
                 <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">
                     <div className="space-y-1">
-                        <label htmlFor="blend-mode" className="label">Blend</label>
-                        <Select id="blend-mode" value={blendMode} onChange={(e) => { checkpoint('blend change'); setBlendMode(e.target.value as AppState['blendMode']) }}>
-                            {BlendModeSchema.options.map((m) => <option key={m} value={m} title={BLEND_LABELS[m]}>{BLEND_LABELS[m].split(' ')[0]}</option>)}
-                        </Select>
+                        <label id="blend-mode-label" htmlFor="blend-mode" className="label">Blend</label>
+                        <Select id="blend-mode" value={blendMode} options={blendOptions} onChange={(mode) => { checkpoint('blend change'); setBlendMode(mode) }} />
                     </div>
                     <button
                         type="button"

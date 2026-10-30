@@ -3,7 +3,6 @@ import { twMerge } from 'tailwind-merge'
 import * as React from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { sliderCheckpoint } from '../../store/history'
-import { focusedByKeyboard } from '../../engine/modality'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -77,24 +76,7 @@ export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
 )
 Input.displayName = 'Input'
 
-// A mouse pick gives focus back to the page, so keyboard shortcuts keep working
-export const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement>>(
-  ({ className, onChange, ...props }, ref) => (
-    <select
-      ref={ref}
-      className={cn(
-        'h-8 w-full rounded-md border border-edge bg-rack pl-2 pr-7 text-[13px] text-ink transition-colors focus-visible:border-signal',
-        className
-      )}
-      onChange={(e) => {
-        onChange?.(e)
-        if (!focusedByKeyboard()) e.currentTarget.blur()
-      }}
-      {...props}
-    />
-  )
-)
-Select.displayName = 'Select'
+export { Select, type SelectOption } from './Select'
 
 const SLIDER_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End']
 
@@ -124,7 +106,7 @@ export function Field({ label, value, className, children }: {
   return (
     <div className={cn('space-y-1.5', className)}>
       <div className="flex items-baseline justify-between gap-2">
-        <label htmlFor={id} className="text-xs font-medium text-dim">{label}</label>
+        <label id={`${id}-label`} htmlFor={id} className="text-xs font-medium text-dim">{label}</label>
         {value !== undefined && <span className="text-xs font-semibold text-ink">{value}</span>}
       </div>
       {children(id)}

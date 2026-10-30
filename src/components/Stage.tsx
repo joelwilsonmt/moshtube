@@ -9,7 +9,7 @@ import { registerPlayer } from '../engine/players'
 import { handlePlayerError } from '../utils/youtube'
 import { OverlayLayer } from './OverlayLayer'
 
-const REVEAL_DELAY_MS = 2500
+const REVEAL_DELAY_MS = 4000
 
 // Live top-layer opacity: the mix, swept from 0 up to it when oscillating
 export function liveMix(state: AppState, beats: number) {
