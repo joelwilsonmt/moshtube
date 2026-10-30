@@ -5,6 +5,9 @@ import { appStore } from '../store/appStore'
 import type { Pattern } from '../store/schema'
 import { beatsNow } from '../engine/clock'
 import { createPatternRenderer } from '../fx/patterns'
+import { builtInLottie, isBuiltInLottie } from '../fx/lotties'
+import type { AnimationItem } from 'lottie-web'
+import { cn } from './ui/core'
 
 // Load errors for layer C media, shown in the inspector
 export const overlayErrorStore = createStore(() => ({ error: null as string | null }))
@@ -58,15 +61,66 @@ export function MediaView({ url, reportErrors = true }: { url: string; reportErr
     return <video ref={videoRef} key={url} src={url} autoPlay loop muted playsInline onError={onError} className="h-full w-full object-cover" />
 }
 
+// Lottie loop driven frame by frame from the beat clock: one loop lasts `loopBeats`
+// beats and freezes with the output. Built-ins are white and take the Layer C hue.
+export function LottieView({ source, reportErrors = true }: { source: string; reportErrors?: boolean }) {
+    const ref = useRef<HTMLDivElement>(null)
+    const hue = useStore(appStore, (s) => s.overlay.hue)
+    const builtIn = isBuiltInLottie(source)
+
+    useEffect(() => {
+        const container = ref.current
+        if (!container) return
+        let cancelled = false
+        let raf = 0
+        let anim: AnimationItem | null = null
+        const fail = () => reportErrors && overlayErrorStore.setState({ error: 'That link did not load as a Lottie animation. It needs to be a direct link to a Lottie .json file.' })
+
+        import('lottie-web/build/player/lottie_light')
+            .then(({ default: lottie }) => {
+                if (cancelled) return
+                anim = lottie.loadAnimation({
+                    container,
+                    renderer: 'svg',
+                    loop: false,
+                    autoplay: false,
+                    // lottie-web mutates animation data, so every instance gets its own copy
+                    ...(isBuiltInLottie(source) ? { animationData: structuredClone(builtInLottie(source)) } : { path: source }),
+                    rendererSettings: { preserveAspectRatio: 'xMidYMid slice' },
+                })
+                anim.addEventListener('data_failed', fail)
+                anim.addEventListener('DOMLoaded', () => { if (reportErrors) overlayErrorStore.setState({ error: null }) })
+                const tick = () => {
+                    const total = anim?.totalFrames ?? 0
+                    if (total > 1) anim!.goToAndStop(((beatsNow() / appStore.getState().overlay.loopBeats) % 1) * (total - 1), true)
+                    raf = requestAnimationFrame(tick)
+                }
+                raf = requestAnimationFrame(tick)
+            })
+            .catch(fail)
+
+        return () => {
+            cancelled = true
+            cancelAnimationFrame(raf)
+            anim?.destroy()
+        }
+    }, [source, reportErrors])
+
+    return <div ref={ref} className={cn('h-full w-full', builtIn && 'lottie-tint')} style={builtIn ? { color: `hsl(${hue} 90% 65%)` } : undefined} />
+}
+
 export function OverlayLayer() {
     const overlay = useStore(appStore, (s) => s.overlay)
     if (overlay.kind === 'off' || (overlay.kind === 'media' && !overlay.url)) return null
+    const content = overlay.kind === 'pattern' ? <PatternCanvas pattern={overlay.pattern} />
+        : overlay.kind === 'lottie' ? <LottieView source={overlay.lottie} />
+        : <MediaView url={overlay.url} />
     return (
         <div
             className="pointer-events-none absolute inset-0 z-20"
             style={{ mixBlendMode: overlay.blend, opacity: overlay.opacity }}
         >
-            {overlay.kind === 'pattern' ? <PatternCanvas pattern={overlay.pattern} /> : <MediaView url={overlay.url} />}
+            {content}
         </div>
     )
 }

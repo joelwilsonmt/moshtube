@@ -153,3 +153,11 @@
 @media (prefers-reduced-motion: reduce) {
   .strip-flash { animation: none; }
 }
+
+/* Built-in Lottie animations are drawn in white; paint them with the Layer C hue */
+.lottie-tint path[fill]:not([fill="none"]) {
+  fill: currentColor;
+}
+.lottie-tint path[stroke]:not([stroke="none"]) {
+  stroke: currentColor;
+}
