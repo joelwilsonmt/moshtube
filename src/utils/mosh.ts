@@ -1,5 +1,5 @@
 import { appStore, updateVideoState, setBlendMode, setMix, setMixOsc, setOverlay } from '../store/appStore'
-import { checkpoint, withoutHistory } from '../store/history'
+import { checkpoint, historyStore, onRestore, withoutHistory } from '../store/history'
 import { announce, flashChanged } from '../store/uiStore'
 import { BlendModeSchema, OSC_RATES, PatternSchema, type EffectType, type SourceId } from '../store/schema'
 import { BLEND_LABELS } from '../components/options'
@@ -7,7 +7,7 @@ import { EFFECTS, MAX_EFFECTS, randomEffect } from '../fx/effects'
 import { PATTERN_LABELS } from '../fx/patterns'
 import { BUILT_IN_LOTTIES, isBuiltInLottie, LOTTIE_LABELS } from '../fx/lotties'
 import { loadRandomVideo, randomPoolId, videoErrorStore } from './youtube'
-import { swapBusy } from '../engine/swap'
+import { swapBusy, swapStore } from '../engine/swap'
 import { isCompact } from './config'
 
 const pick = <T,>(arr: readonly T[]) => arr[Math.floor(Math.random() * arr.length)]
@@ -120,18 +120,48 @@ export const moshEverything = () => {
     summarize('Mosh Everything', [...SOURCES.map(sourceChange), ...moshMix(), moshOverlay(false), moshOutput()])
 }
 
+// Mosh Me Daddy lands as one drop: the new look waits until the new videos start fading
+// in, so effects never play over the outgoing clips first
+const DROP_MAX_MS = 15_000
+let drop: { ids: SourceId[]; look: () => Change[]; stop: () => void } | null = null
+
+function cancelDrop() {
+    drop?.stop()
+    drop = null
+}
+// Undo, or any hand edit, during the wait means the user has taken over
+historyStore.subscribe(cancelDrop)
+onRestore(cancelDrop)
+
+const arrived = (id: SourceId) => {
+    const swap = swapStore.getState()
+    return !!videoErrorStore.getState()[id] || (!swap.picking[id] && swap.showing[id] === appStore.getState()[id].id)
+}
+
+function landDrop() {
+    if (!drop) return
+    const { ids, look } = drop
+    cancelDrop()
+    summarize('Mosh Me Daddy', [...ids.map((id) => ({ id, text: `New video ${letter(id)}` })), ...look()])
+}
+
 export const moshMeDaddy = () => {
     checkpoint('Mosh Me Daddy')
-    // Effects apply now; videos swap in once a playable pick is confirmed
-    const parts = [...SOURCES.map(sourceChange), ...moshMix(), moshOverlay(true), moshOutput()]
-    const loop = { start: 15, end: -5, loop: true } // end -5 signals "Duration - 5s"
-    // A source whose last pick is still loading keeps it, so mashing can't queue up loads
+    cancelDrop()
+    const look = () => [...SOURCES.map(sourceChange), ...moshMix(), moshOverlay(true), moshOutput()]
     const unlocked = SOURCES.filter((id) => !appStore.getState()[id].hold)
-    const busy = (id: SourceId) => swapBusy(id, !!videoErrorStore.getState()[id])
-    const swapped = unlocked.filter((id) => !busy(id))
-    swapped.forEach((id) => void loadRandomVideo(id, loop))
-    const videos: Change[] = unlocked.map((id) => ({ id, text: swapped.includes(id) ? `New video ${letter(id)}` : `Video ${letter(id)} still loading` }))
-    summarize('Mosh Me Daddy', [...videos, ...parts])
+    // A source still loading keeps its incoming video (no queued loads); the drop waits for it
+    const busy = unlocked.filter((id) => swapBusy(id, !!videoErrorStore.getState()[id]))
+    const loop = { start: 15, end: -5, loop: true } // end -5 signals "Duration - 5s"
+    unlocked.filter((id) => !busy.includes(id)).forEach((id) => void loadRandomVideo(id, loop))
+    if (!unlocked.length) return summarize('Mosh Me Daddy', look())
+
+    announce(`Mosh Me Daddy · loading new video${unlocked.length > 1 ? 's' : ''}…`)
+    const check = () => drop?.ids.every(arrived) && landDrop()
+    const timer = setTimeout(landDrop, DROP_MAX_MS)
+    const unsubSwap = swapStore.subscribe(check)
+    const unsubError = videoErrorStore.subscribe(check)
+    drop = { ids: unlocked, look, stop: () => { clearTimeout(timer); unsubSwap(); unsubError() } }
 }
 
 // A first visit opens on a happy accident instead of a fixed default pair

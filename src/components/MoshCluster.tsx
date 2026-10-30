@@ -19,7 +19,7 @@ export function MoshCluster({ compact = false, className, id }: { compact?: bool
                     title={`${hint} (${key})`}
                     aria-label={label}
                     aria-keyshortcuts={key}
-                    className={cn('group flex h-9 items-center gap-2 rounded-md border border-edge bg-raised px-3 text-left text-[13px] font-medium text-ink transition-colors duration-150 hover:bg-line/70 active:bg-line', !compact && 'max-[1279px]:flex-1')}
+                    className={cn('group flex h-9 items-center gap-2 rounded-md border border-edge bg-raised px-3 text-left text-[13px] font-medium text-ink transition-colors duration-150 hover:bg-line/70 active:bg-line')}
                 >
                     <Icon size={15} aria-hidden="true" className="shrink-0 text-dim group-hover:text-ink" />
                     <span className="whitespace-nowrap">{label}</span>
@@ -35,7 +35,7 @@ export function MoshCluster({ compact = false, className, id }: { compact?: bool
                 aria-keyshortcuts="3"
                 className={cn(
                     'flex items-center gap-2 rounded-md bg-signal px-3 text-left font-semibold text-signal-ink transition-[filter] duration-150 hover:brightness-110 active:brightness-95',
-                    compact ? 'h-9 text-[13px]' : 'h-12 text-[15px] max-[1279px]:h-10 max-[1279px]:flex-[1.4] max-[1279px]:text-[14px]'
+                    compact ? 'h-9 text-[13px]' : 'h-12 text-[15px]'
                 )}
             >
                 <Sparkles size={compact ? 15 : 17} aria-hidden="true" className="shrink-0" />

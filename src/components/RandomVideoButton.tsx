@@ -1,26 +1,33 @@
-import { Shuffle } from 'lucide-react'
+import { LoaderCircle, Shuffle } from 'lucide-react'
 import { useStore } from 'zustand'
 import { useSwapBusy } from '../engine/swap'
 import { checkpoint } from '../store/history'
 import type { SourceId } from '../store/schema'
+import { announce } from '../store/uiStore'
 import { loadRandomVideo, videoErrorStore } from '../utils/youtube'
-import { IconButton } from './ui/core'
+import { cn, IconButton } from './ui/core'
 
 const FULL_LOOP = { start: 0, end: 0, lastInteraction: 0 }
 
-// Disabled until the previous pick is on screen, so mashing it can't queue up loads
-export function RandomVideoButton({ id, name, size, className }: { id: SourceId; name?: string; size?: 'sm' | 'md'; className?: string }) {
+// Spins and ignores presses until the previous pick is on screen, so mashing it can't
+// queue up loads. aria-disabled (not disabled) keeps keyboard focus where it was.
+export function RandomVideoButton({ id, size, className }: { id: SourceId; size?: 'sm' | 'md'; className?: string }) {
     const error = useStore(videoErrorStore, (s) => !!s[id])
     const busy = useSwapBusy(id, error)
-    const label = name ? `Random video for ${name}` : 'Random video'
+    const letter = id === 'videoA' ? 'A' : 'B'
     return (
         <IconButton
             size={size}
-            icon={Shuffle}
-            label={busy ? `${label} (next video loading)` : label}
-            disabled={busy}
-            onClick={() => { checkpoint('random video'); void loadRandomVideo(id, FULL_LOOP) }}
-            className={className}
+            icon={busy ? LoaderCircle : Shuffle}
+            label={busy ? `Loading a random video for ${letter}…` : `Random video for ${letter}`}
+            aria-disabled={busy || undefined}
+            onClick={() => {
+                if (busy) return
+                checkpoint('random video')
+                announce(`Loading a random video for ${letter}…`)
+                void loadRandomVideo(id, FULL_LOOP)
+            }}
+            className={cn(busy && 'cursor-progress text-ink hover:bg-transparent [&>svg]:animate-spin motion-reduce:[&>svg]:animate-none', className)}
         />
     )
 }

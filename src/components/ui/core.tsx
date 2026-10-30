@@ -172,14 +172,15 @@ export function Kbd({ children }: { children: React.ReactNode }) {
 }
 
 // Section inside a panel: label row, optional actions, body
-export function Section({ title, actions, children, className }: {
+export function Section({ id, title, actions, children, className }: {
+  id?: string
   title: string
   actions?: React.ReactNode
   children: React.ReactNode
   className?: string
 }) {
   return (
-    <section className={cn('border-t border-line px-4 py-3.5 first:border-t-0', className)}>
+    <section id={id} className={cn('scroll-mt-2 border-t border-line px-4 py-3.5 first:border-t-0', className)}>
       <div className="mb-3 flex h-7 items-center justify-between gap-2">
         <h3 className="label">{title}</h3>
         {actions && <div className="flex items-center gap-1">{actions}</div>}

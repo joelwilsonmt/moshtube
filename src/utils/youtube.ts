@@ -4,6 +4,7 @@ import type { VideoState } from '../store/schema'
 import { SOURCE_A_IDS, SOURCE_B_IDS } from './sourceLists'
 import { libraryStore } from '../store/library'
 import { setPicking } from '../engine/swap'
+import { onRestore } from '../store/history'
 
 type Target = 'videoA' | 'videoB'
 
@@ -125,6 +126,14 @@ async function pickRandomId(target: Target): Promise<string | null> {
 
 // Latest request per source wins, so rapid shuffle clicks can't land out of order
 const pending: Record<Target, number> = { videoA: 0, videoB: 0 }
+
+// Undo drops any pick still being checked
+onRestore(() => {
+    for (const target of ['videoA', 'videoB'] as const) {
+        pending[target]++
+        setPicking(target, false)
+    }
+})
 
 export async function loadRandomVideo(target: Target, updates: Partial<VideoState> = {}) {
     const token = ++pending[target]

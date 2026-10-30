@@ -139,7 +139,7 @@ function SourceStrip({ id }: { id: SourceId }) {
                     onClick={() => updateVideoState(id, { playing: !playing })}
                 />
                 <IconButton size="sm" icon={Zap} label={`Mosh ${name} only`} onClick={() => moshVideo(id)} disabled={hold} />
-                <RandomVideoButton size="sm" id={id} name={name} />
+                <RandomVideoButton size="sm" id={id} />
                 <IconButton
                     size="sm"
                     icon={hold ? Lock : LockOpen}
@@ -166,6 +166,12 @@ function LockToggle({ lockKey, what }: { lockKey: keyof AppState['locks']; what:
             onClick={() => setLock(lockKey, !locked)}
         />
     )
+}
+
+// Its settings live in the Master panel, under the blend
+function selectCrossfade() {
+    select('master')
+    requestAnimationFrame(() => document.getElementById('crossfade-settings')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }))
 }
 
 // The fader always runs A (left) to B (right), matching the strips beside it.
@@ -200,7 +206,15 @@ function Crossfader() {
     return (
         <section aria-label={mixLocked ? 'Crossfader (locked)' : 'Crossfader'} className={cn('flex min-w-[232px] min-[1280px]:min-w-[272px] min-[1400px]:min-w-[300px] flex-1 flex-col justify-between gap-2 rounded-md bg-rack/60 px-3 py-2', flash && 'strip-flash', mixLocked && LOCKED)}>
             <div className="flex items-center justify-between gap-2">
-                <label htmlFor="crossfader" className="label">Crossfade</label>
+                <button
+                    type="button"
+                    onClick={selectCrossfade}
+                    aria-label="Crossfade settings"
+                    title="Oscillation, shape and which source is on top"
+                    className="label -mx-1 rounded-sm px-1 transition-colors hover:bg-raised hover:text-ink"
+                >
+                    Crossfade
+                </button>
                 <div className="flex items-center gap-1">
                     <button
                         type="button"
@@ -220,6 +234,7 @@ function Crossfader() {
                 <div className="relative flex-1">
                     <input
                         id="crossfader"
+                        aria-label="Crossfade"
                         type="range"
                         className="range range-fader"
                         min={0} max={1} step={0.01}
@@ -354,9 +369,10 @@ function MasterStrip() {
 
 export function Mixer({ className }: { className?: string }) {
     return (
-        <footer className={cn('flex shrink-0 items-stretch gap-2 overflow-x-auto border-t border-line bg-panel p-2 max-[1279px]:flex-wrap', className)}>
-            {/* First in tab order; drawn last (right) on wide screens */}
-            <MoshCluster id="mosh" className="w-[212px] min-[1400px]:w-[300px] shrink-0 min-[1280px]:order-last max-[1279px]:w-full max-[1279px]:flex-row" />
+        <footer className={cn('flex shrink-0 items-stretch gap-2 overflow-x-auto border-t border-line bg-panel p-2', className)}>
+            {/* First in tab order, drawn last (right). One row at every width: narrow
+                windows scroll the strips under it while it stays pinned in view */}
+            <MoshCluster id="mosh" className="sticky right-0 z-10 order-last w-[212px] shrink-0 bg-panel min-[1400px]:w-[300px] max-[1279px]:-my-2 max-[1279px]:-mr-2 max-[1279px]:border-l max-[1279px]:border-line max-[1279px]:p-2 max-[1279px]:shadow-[-12px_0_16px_-8px_oklch(0_0_0/0.5)]" />
             <SourceStrip id="videoA" />
             <Crossfader />
             <SourceStrip id="videoB" />

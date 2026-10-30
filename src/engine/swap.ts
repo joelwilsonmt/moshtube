@@ -6,12 +6,13 @@ import type { SourceId } from '../store/schema'
 // Per source: whether its newest video is still loading/fading in, and which video the
 // stage is actually showing meanwhile (so the mixer can match the output, not run ahead).
 // `picking` covers the embeddability check before a random video reaches the stage;
-// `since` is when the source last went busy.
+// `since` is when the source last went busy; `showing` is the newest video fading in or shown.
 export const swapStore = createStore(() => ({
     loading: { videoA: false, videoB: false } as Record<SourceId, boolean>,
     picking: { videoA: false, videoB: false } as Record<SourceId, boolean>,
     since: { videoA: 0, videoB: 0 } as Record<SourceId, number>,
     shown: {} as Partial<Record<SourceId, string>>,
+    showing: {} as Partial<Record<SourceId, string>>,
 }))
 
 type SwapState = ReturnType<typeof swapStore.getState>
@@ -25,12 +26,13 @@ function update(id: SourceId, change: (s: SwapState) => Partial<SwapState>) {
     })
 }
 
-export const setSwap = (id: SourceId, loading: boolean, shown: string | undefined) =>
+export const setSwap = (id: SourceId, loading: boolean, shown: string | undefined, showing: string | undefined) =>
     update(id, (s) => ({
         loading: { ...s.loading, [id]: loading },
         // The stage has taken over the wait, so the pick is done
         picking: loading ? { ...s.picking, [id]: false } : s.picking,
         shown: { ...s.shown, [id]: shown },
+        showing: { ...s.showing, [id]: showing },
     }))
 
 export const setPicking = (id: SourceId, picking: boolean) =>

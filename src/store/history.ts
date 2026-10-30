@@ -53,8 +53,14 @@ export function sliderCheckpoint(e: { currentTarget: HTMLInputElement }) {
   checkpoint(name.toLowerCase(), true)
 }
 
+// Work still in flight (a random pick, a held Mosh Me Daddy) registers here so undo and
+// redo can stop it from landing on top of the restored mix
+const restoreListeners = new Set<() => void>()
+export const onRestore = (fn: () => void) => restoreListeners.add(fn)
+
 // Restoring keeps playback state; undo is about the mix, not the transport
 function restore(target: AppState) {
+  restoreListeners.forEach((fn) => fn())
   const { outputPlaying } = appStore.getState()
   appStore.setState({ ...target, outputPlaying })
 }
