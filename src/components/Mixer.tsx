@@ -14,7 +14,8 @@ import { moshVideo } from '../utils/mosh'
 import { liveMix } from './Stage'
 import { cn, IconButton, Select, Toggle } from './ui/core'
 import { MoshCluster } from './MoshCluster'
-import { MediaView, PatternCanvas } from './OverlayLayer'
+import { LottieView, MediaView, PatternCanvas } from './OverlayLayer'
+import { isBuiltInLottie, LOTTIE_LABELS } from '../fx/lotties'
 
 export const LAYER = {
     videoA: { letter: 'A', name: 'Source A', bg: 'bg-layer-a', token: '--layer-a' },
@@ -263,6 +264,7 @@ function Crossfader() {
 function OverlayPreview() {
     const overlay = useStore(appStore, (s) => s.overlay)
     if (overlay.kind === 'pattern') return <PatternCanvas pattern={overlay.pattern} reportErrors={false} />
+    if (overlay.kind === 'lottie') return <LottieView source={overlay.lottie} reportErrors={false} />
     if (overlay.kind === 'media' && overlay.url) return <MediaView url={overlay.url} reportErrors={false} />
     return <span className="flex h-full items-center justify-center text-xs text-dim">Off</span>
 }
@@ -271,7 +273,9 @@ function OverlayStrip() {
     const overlay = useStore(appStore, (s) => s.overlay)
     const selected = useStore(uiStore, (s) => s.selected === 'overlay')
     const on = overlay.kind !== 'off'
-    const content = overlay.kind === 'pattern' ? PATTERN_LABELS[overlay.pattern] : overlay.kind === 'media' ? 'Video overlay' : 'Off'
+    const content = overlay.kind === 'pattern' ? PATTERN_LABELS[overlay.pattern]
+        : overlay.kind === 'lottie' ? (isBuiltInLottie(overlay.lottie) ? LOTTIE_LABELS[overlay.lottie] : 'Lottie')
+        : overlay.kind === 'media' ? 'Video overlay' : 'Off'
     const flash = useChangedFlash('overlay')
 
     return (

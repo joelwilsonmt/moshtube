@@ -4,6 +4,7 @@ import { announce, flashChanged } from '../store/uiStore'
 import { BlendModeSchema, OSC_RATES, PatternSchema, type SourceId } from '../store/schema'
 import { EFFECTS, randomEffect } from '../fx/effects'
 import { PATTERN_LABELS } from '../fx/patterns'
+import { BUILT_IN_LOTTIES, isBuiltInLottie, LOTTIE_LABELS } from '../fx/lotties'
 import { loadRandomVideo, randomPoolId } from './youtube'
 
 const pick = <T,>(arr: readonly T[]) => arr[Math.floor(Math.random() * arr.length)]
@@ -78,18 +79,25 @@ function moshOverlay(canToggle: boolean): Change {
     const overlay = appStore.getState().overlay
     if (overlay.hold) return null
     const look = { blend: pick(OVERLAY_BLENDS), opacity: 0.3 + Math.random() * 0.4 }
-    if (overlay.kind === 'media') {
+    // Someone's own video or Lottie link is kept; only its look changes
+    if (overlay.kind === 'media' || (overlay.kind === 'lottie' && !isBuiltInLottie(overlay.lottie))) {
         setOverlay(look)
         return { id: 'overlay', text: 'C: remixed' }
     }
-    const on = canToggle ? Math.random() < 0.5 : overlay.kind === 'pattern'
+    const on = canToggle ? Math.random() < 0.5 : overlay.kind !== 'off'
     if (!on) {
         if (overlay.kind === 'off') return null
         setOverlay({ kind: 'off' })
         return { id: 'overlay', text: 'C: off' }
     }
+    const hue = Math.round(Math.random() * 360)
+    if (Math.random() < 0.35) {
+        const lottie = pick(BUILT_IN_LOTTIES)
+        setOverlay({ ...look, kind: 'lottie', lottie, hue, loopBeats: pick([2, 4, 8]) })
+        return { id: 'overlay', text: `C: ${LOTTIE_LABELS[lottie]}` }
+    }
     const pattern = pick(PatternSchema.options)
-    setOverlay({ ...look, kind: 'pattern', pattern, hue: Math.round(Math.random() * 360) })
+    setOverlay({ ...look, kind: 'pattern', pattern, hue })
     return { id: 'overlay', text: `C: ${PATTERN_LABELS[pattern]}` }
 }
 

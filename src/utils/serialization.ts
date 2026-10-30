@@ -3,6 +3,10 @@ import {
   type AppState, type Effect, type Osc, type VideoState,
 } from '../store/schema'
 import { createEffect, EFFECTS } from '../fx/effects'
+import { isBuiltInLottie } from '../fx/lotties'
+
+// A built-in animation name or an http(s) link to Lottie JSON
+const validLottie = (v: string) => isBuiltInLottie(v) || /^https?:\/\/\S+$/.test(v)
 
 // Effect stacks: `type:amount[:rate:shape]`, comma-separated. A rate means oscillation is on.
 // e.g. a_fx=wavy:40:16:sine,glitch:30
@@ -64,9 +68,13 @@ export function serializeState(state: AppState): URLSearchParams {
   if (state.bpm !== defaultState.bpm) params.set('bpm', String(state.bpm))
   const c = state.overlay
   if (c.kind !== 'off') {
-    params.set('c', c.kind === 'pattern' ? c.pattern : 'media')
+    params.set('c', c.kind === 'pattern' ? c.pattern : c.kind)
     if (c.kind === 'media') params.set('c_url', c.url)
-    if (c.kind === 'pattern') params.set('c_hue', String(Math.round(c.hue)))
+    if (c.kind === 'lottie') {
+      params.set('c_lottie', c.lottie)
+      params.set('c_beats', String(c.loopBeats))
+    }
+    if (c.kind !== 'media') params.set('c_hue', String(Math.round(c.hue)))
     params.set('c_op', c.opacity.toFixed(2))
     params.set('c_blend', c.blend)
   }
@@ -121,7 +129,12 @@ export function deserializeState(params: URLSearchParams): Partial<AppState> {
   const cUrl = params.get('c_url') ?? ''
   const layerC = {
     ...defaultState.overlay,
-    kind: pattern.success ? 'pattern' as const : cKind === 'media' && /^https?:\/\//.test(cUrl) ? 'media' as const : 'off' as const,
+    kind: pattern.success ? 'pattern' as const
+      : cKind === 'media' && /^https?:\/\//.test(cUrl) ? 'media' as const
+      : cKind === 'lottie' && validLottie(params.get('c_lottie') ?? '') ? 'lottie' as const
+      : 'off' as const,
+    lottie: validLottie(params.get('c_lottie') ?? '') ? params.get('c_lottie')! : defaultState.overlay.lottie,
+    loopBeats: Math.min(32, Math.max(1, num(params, 'c_beats', defaultState.overlay.loopBeats))),
     pattern: pattern.success ? pattern.data : defaultState.overlay.pattern,
     hue: Math.min(360, Math.max(0, num(params, 'c_hue', defaultState.overlay.hue))),
     url: /^https?:\/\//.test(cUrl) ? cUrl : '',

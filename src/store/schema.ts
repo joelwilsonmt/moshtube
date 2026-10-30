@@ -26,10 +26,12 @@ export const PatternSchema = z.enum(['plasma', 'tunnel', 'grid', 'noise', 'kalei
 
 // Layer C: our own content composited over A/B (generative patterns or a transparent video/GIF)
 export const OverlaySchema = z.object({
-  kind: z.enum(['off', 'pattern', 'media']).default('off'),
+  kind: z.enum(['off', 'pattern', 'lottie', 'media']).default('off'),
   pattern: PatternSchema.default('plasma'),
   hue: z.number().min(0).max(360).default(280),
   url: z.string().default(''),
+  lottie: z.string().default('rings'), // a built-in animation name, or a link to Lottie JSON
+  loopBeats: z.number().default(4), // one animation loop lasts this many beats
   opacity: z.number().min(0).max(1).default(0.7),
   blend: BlendModeSchema.default('screen'),
   hold: z.boolean().default(false), // randomizers skip layer C
@@ -116,7 +118,7 @@ export const defaultState: AppState = {
   mixOsc: { on: false, rate: 16, shape: 'sine' },
   activeOverlay: 'videoA',
   masterEffects: [],
-  overlay: { kind: 'off', pattern: 'plasma', hue: 280, url: '', opacity: 0.7, blend: 'screen', hold: false },
+  overlay: { kind: 'off', pattern: 'plasma', hue: 280, url: '', lottie: 'rings', loopBeats: 4, opacity: 0.7, blend: 'screen', hold: false },
   outputPlaying: true,
   bpm: 120,
   autoMosh: { on: false, bars: 4, scope: 'everything' },

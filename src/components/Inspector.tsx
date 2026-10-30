@@ -14,7 +14,8 @@ import { DualRangeSlider } from './ui/DualRangeSlider'
 import { Button, Field, IconButton, Input, Range, Section, Segmented, Select } from './ui/core'
 import { EffectStack } from './EffectStack'
 import { MyVideos } from './Library'
-import { BLEND_HINTS, BLEND_LABELS, LAYER, LayerChip } from './Mixer'
+import { BLEND_HINTS, BLEND_LABELS, LAYER, LayerChip, rateLabel } from './Mixer'
+import { BUILT_IN_LOTTIES, isBuiltInLottie, LOTTIE_LABELS } from '../fx/lotties'
 
 // Commits on blur or Enter; shows the formatted value otherwise
 function TimeInput({ id, value, onCommit }: { id: string; value: number; onCommit: (v: number) => void }) {
@@ -160,6 +161,82 @@ function SourceInspector({ id }: { id: SourceId }) {
     )
 }
 
+const LOOP_BEATS = [1, 2, 4, 8, 16] as const
+const CUSTOM = 'custom'
+
+function LottieControls() {
+    const overlay = useStore(appStore, (s) => s.overlay)
+    const error = useStore(overlayErrorStore, (s) => s.error)
+    const builtIn = isBuiltInLottie(overlay.lottie)
+    const [custom, setCustom] = useState(!builtIn)
+    const [url, setUrl] = useState(builtIn ? '' : overlay.lottie)
+    const urlValid = /^https?:\/\/\S+$/.test(url.trim())
+
+    return (
+        <>
+            <Field label="Animation">
+                {(fieldId) => (
+                    <Select
+                        id={fieldId}
+                        value={custom ? CUSTOM : overlay.lottie}
+                        onChange={(e) => {
+                            if (e.target.value === CUSTOM) return setCustom(true)
+                            setCustom(false)
+                            checkpoint('Lottie change')
+                            setOverlay({ lottie: e.target.value })
+                        }}
+                    >
+                        {BUILT_IN_LOTTIES.map((name) => <option key={name} value={name}>{LOTTIE_LABELS[name]}</option>)}
+                        <option value={CUSTOM}>Your own (link)…</option>
+                    </Select>
+                )}
+            </Field>
+            {custom && (
+                <form
+                    className="space-y-1.5"
+                    onSubmit={(e) => {
+                        e.preventDefault()
+                        if (!urlValid) return
+                        checkpoint('Lottie link')
+                        setOverlay({ lottie: url.trim() })
+                    }}
+                >
+                    <label htmlFor="lottie-url" className="text-xs font-medium text-dim">Direct link to a Lottie .json file</label>
+                    <div className="flex gap-1.5">
+                        <Input
+                            id="lottie-url"
+                            value={url}
+                            onChange={(e) => setUrl(e.target.value)}
+                            placeholder="https://…/animation.json"
+                            aria-invalid={!!error}
+                            aria-describedby="lottie-url-msg"
+                            spellCheck={false}
+                        />
+                        <Button type="submit" disabled={!urlValid} className="shrink-0">Load</Button>
+                    </div>
+                    <p id="lottie-url-msg" className={error ? 'text-xs text-danger' : 'text-xs text-dim'}>
+                        {error ?? 'From LottieFiles, use the Lottie JSON link (not the .lottie file). The host has to allow loading from other sites.'}
+                    </p>
+                </form>
+            )}
+            <Field label="One loop lasts">
+                {(fieldId) => (
+                    <Select id={fieldId} value={overlay.loopBeats} onChange={(e) => setOverlay({ loopBeats: Number(e.target.value) })}>
+                        {LOOP_BEATS.map((b) => <option key={b} value={b}>{rateLabel(b)}</option>)}
+                    </Select>
+                )}
+            </Field>
+            {builtIn && !custom && (
+                <Field label="Hue" value={`${Math.round(overlay.hue)}°`}>
+                    {(fieldId) => (
+                        <Range id={fieldId} min={0} max={360} step={1} value={overlay.hue} onChange={(e) => setOverlay({ hue: parseFloat(e.target.value) })} />
+                    )}
+                </Field>
+            )}
+        </>
+    )
+}
+
 function OverlayInspector() {
     const overlay = useStore(appStore, (s) => s.overlay)
     const error = useStore(overlayErrorStore, (s) => s.error)
@@ -175,7 +252,8 @@ function OverlayInspector() {
                     options={[
                         { value: 'off', label: 'Off' },
                         { value: 'pattern', label: 'Pattern' },
-                        { value: 'media', label: 'Video or GIF' },
+                        { value: 'lottie', label: 'Lottie' },
+                        { value: 'media', label: 'Video' },
                     ]}
                     onChange={(kind) => { checkpoint('Layer C content'); setOverlay({ kind }) }}
                 />
@@ -196,6 +274,7 @@ function OverlayInspector() {
                         <p className="text-xs text-dim">Patterns move with the tempo and pulse on every beat.</p>
                     </>
                 )}
+                {overlay.kind === 'lottie' && <LottieControls />}
                 {overlay.kind === 'media' && (
                     <form
                         className="space-y-1.5"
@@ -206,7 +285,7 @@ function OverlayInspector() {
                             setOverlay({ url: url.trim() })
                         }}
                     >
-                        <label htmlFor="overlay-url" className="text-xs font-medium text-dim">Direct link to a video or GIF</label>
+                        <label htmlFor="overlay-url" className="text-xs font-medium text-dim">Direct link to a video or GIF file</label>
                         <div className="flex gap-1.5">
                             <Input
                                 id="overlay-url"
@@ -225,7 +304,7 @@ function OverlayInspector() {
                     </form>
                 )}
                 {overlay.kind === 'off' && (
-                    <p className="text-[13px] text-dim">Layer C sits over both sources: a tempo-synced pattern, or a transparent video or GIF from a link.</p>
+                    <p className="text-[13px] text-dim">Layer C sits over both sources: a tempo-synced pattern or Lottie animation, or a transparent video or GIF from a link.</p>
                 )}
             </Section>
             {overlay.kind !== 'off' && (
