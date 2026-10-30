@@ -11,6 +11,7 @@ import { loadRandomVideo, parseYouTubeId, videoErrorStore } from '../utils/youtu
 import { DualRangeSlider } from './ui/DualRangeSlider'
 import { Field, IconButton, Input, Range, Section } from './ui/core'
 import { EffectStack } from './EffectStack'
+import { MyVideos } from './Library'
 import { LAYER, LayerChip } from './Mixer'
 
 // Commits on blur or Enter; shows the formatted value otherwise
@@ -39,6 +40,9 @@ function TimeInput({ id, value, onCommit }: { id: string; value: number; onCommi
     )
 }
 
+// A new video loops in full until the user sets a region (onReady fills in the duration)
+const FULL_LOOP = { start: 0, end: 0, lastInteraction: 0 }
+
 function SourceInspector({ id }: { id: SourceId }) {
     const state = useStore(appStore, (s) => s[id])
     const playerError = useStore(videoErrorStore, (s) => s[id])
@@ -56,7 +60,7 @@ function SourceInspector({ id }: { id: SourceId }) {
         const nextId = parseYouTubeId(val)
         if (nextId && nextId !== state.id) {
             checkpoint()
-            update({ id: nextId, playing: true })
+            updateVideoState(id, { id: nextId, playing: true, ...FULL_LOOP })
         }
     }
 
@@ -79,7 +83,7 @@ function SourceInspector({ id }: { id: SourceId }) {
                                 className="flex-1"
                                 spellCheck={false}
                             />
-                            <IconButton icon={Shuffle} label="Random video" onClick={() => { checkpoint(); void loadRandomVideo(id) }} className="border border-line" />
+                            <IconButton icon={Shuffle} label="Random video" onClick={() => { checkpoint(); void loadRandomVideo(id, FULL_LOOP) }} className="border border-line" />
                         </div>
                     )}
                 </Field>
@@ -88,6 +92,7 @@ function SourceInspector({ id }: { id: SourceId }) {
                     {playerError && <p className="text-danger">{playerError} Try another link or press Random video.</p>}
                     {!draftInvalid && !playerError && title && <p className="truncate text-dim" title={title}>{title}</p>}
                 </div>
+                <MyVideos />
                 <Field label="Position" value={`${formatTime(time)} / ${formatTime(state.duration)}`}>
                     {(fieldId) => (
                         <Range

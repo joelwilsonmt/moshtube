@@ -5,6 +5,7 @@ import { historyStore, redo, undo } from '../store/history'
 import { announce, uiStore } from '../store/uiStore'
 import { Button, IconButton } from './ui/core'
 import { ShortcutsButton, Tempo } from './Tempo'
+import { PresetsMenu } from './Library'
 
 const STATUS_MS = 4000
 
@@ -52,9 +53,10 @@ export function TopBar({ onFullscreen }: { onFullscreen: () => void }) {
                 <IconButton icon={Undo2} label="Undo (Z)" onClick={undo} disabled={!canUndo} />
                 <IconButton icon={Redo2} label="Redo (Shift+Z)" onClick={redo} disabled={!canRedo} />
                 <div className="mx-1.5 h-5 w-px bg-line" />
+                <PresetsMenu />
                 <Button variant="ghost" onClick={copyLink}>
                     <Link2 size={15} aria-hidden="true" />
-                    Copy link
+                    <span className="max-[1399px]:sr-only">Copy link</span>
                 </Button>
                 <IconButton icon={Maximize} label="Fullscreen (F)" onClick={onFullscreen} />
                 <ShortcutsButton />

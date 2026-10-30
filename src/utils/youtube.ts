@@ -2,6 +2,7 @@ import { createStore } from 'zustand/vanilla'
 import { appStore, updateVideoState } from '../store/appStore'
 import type { VideoState } from '../store/schema'
 import { SOURCE_A_IDS, SOURCE_B_IDS } from './sourceLists'
+import { libraryStore } from '../store/library'
 
 type Target = 'videoA' | 'videoB'
 
@@ -97,8 +98,14 @@ const shuffle = <T,>(arr: T[]) => {
     return out
 }
 
-const poolFor = (target: Target) => target === 'videoA' ? SOURCE_A_IDS : SOURCE_B_IDS
-const isPoolId = (id: string) => SOURCE_A_IDS.includes(id) || SOURCE_B_IDS.includes(id)
+// The user's own pool (shared by A and B) replaces the built-in lists when switched on
+const poolFor = (target: Target) => {
+    const { pool, useMyPool } = libraryStore.getState()
+    if (useMyPool && pool.length) return pool
+    return target === 'videoA' ? SOURCE_A_IDS : SOURCE_B_IDS
+}
+const isPoolId = (id: string) =>
+    SOURCE_A_IDS.includes(id) || SOURCE_B_IDS.includes(id) || libraryStore.getState().pool.includes(id)
 
 async function pickRandomId(target: Target): Promise<string | null> {
     const current = appStore.getState()[target].id
