@@ -19,6 +19,9 @@ export function enterMixer() {
   const url = new URL(window.location.href)
   url.searchParams.delete('view')
   window.history.replaceState(null, '', url.toString())
+  announce('You are in the mixer. Press 3 for a new mix, or pick a strip to change it.')
+  // Land keyboard focus on the randomizers once the mixer has rendered
+  requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById('mosh')?.focus()))
 }
 
 export const select = (selected: Selection) => uiStore.setState({ selected })

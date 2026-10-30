@@ -26,7 +26,8 @@ function decodeOsc(rate?: string, shape?: string): Osc {
 function encodeEffects(effects: Effect[]) {
   return effects
     .map((e) => {
-      const base = EFFECTS[e.type].param ? `${e.type}:${+e.amount.toFixed(2)}` : `${e.type}:1`
+      const type = e.keep ? `!${e.type}` : e.type // ! marks an effect added by hand
+      const base = EFFECTS[e.type].param ? `${type}:${+e.amount.toFixed(2)}` : `${type}:1`
       return e.osc.on ? `${base}:${encodeOsc(e.osc)}` : base
     })
     .join(',')
@@ -34,13 +35,14 @@ function encodeEffects(effects: Effect[]) {
 
 function decodeEffects(raw: string): Effect[] {
   return raw.split(',').flatMap((chunk) => {
-    const [type, amount, rate, shape] = chunk.split(':')
-    const parsedType = EffectTypeSchema.safeParse(type)
+    const [rawType, amount, rate, shape] = chunk.split(':')
+    const keep = rawType?.startsWith('!') ?? false
+    const parsedType = EffectTypeSchema.safeParse(keep ? rawType.slice(1) : rawType)
     if (!parsedType.success) return []
     const param = EFFECTS[parsedType.data].param
     const value = parseFloat(amount)
     const clamped = param && Number.isFinite(value) ? Math.min(param.max, Math.max(param.min, value)) : param?.default ?? 1
-    return [createEffect(parsedType.data, { amount: clamped, osc: decodeOsc(rate, shape) })]
+    return [createEffect(parsedType.data, { amount: clamped, osc: decodeOsc(rate, shape), keep })]
   })
 }
 

@@ -1,29 +1,15 @@
 import { useRef } from 'react'
 import { useStore } from 'zustand'
-import { ArrowDown, ArrowUp, TriangleAlert, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, Lock, LockOpen, TriangleAlert, X } from 'lucide-react'
 import { appStore, getEffects, setEffects, updateEffect, type FxTarget } from '../store/appStore'
 import { checkpoint } from '../store/history'
-import { OSC_RATES, WaveShapeSchema, type Effect, type EffectType } from '../store/schema'
-import { createEffect, EFFECT_GROUPS, EFFECTS, liveAmount, normalizedAmount } from '../fx/effects'
+import type { Effect, EffectType } from '../store/schema'
+import { createEffect, EFFECTS, liveAmount, MAX_EFFECTS, normalizedAmount } from '../fx/effects'
 import { beatsNow } from '../engine/clock'
 import { useFrame } from '../hooks/useLive'
-import { rateLabel } from './Mixer'
+import { effectOptions, rateOptions, shapeOptions } from './options'
 import { Field, IconButton, Range, Select, Toggle } from './ui/core'
 
-// SVG filters on full-frame video get expensive fast
-export const MAX_EFFECTS = 4
-
-function EffectTypeOptions() {
-    return (
-        <>
-            {EFFECT_GROUPS.map(({ group, types }) => (
-                <optgroup key={group} label={group}>
-                    {types.map((t) => <option key={t} value={t}>{EFFECTS[t].label}</option>)}
-                </optgroup>
-            ))}
-        </>
-    )
-}
 
 const formatValue = (effect: Effect) => {
     const param = EFFECTS[effect.type].param!
@@ -58,16 +44,21 @@ function EffectRow({ target, effect, index, count }: { target: FxTarget; effect:
     const changeType = (type: EffectType) => {
         checkpoint('effect change')
         // Keep the slot and its oscillation; reset the amount to the new effect's default
-        updateEffect(target, effect.id, { type, amount: EFFECTS[type].param?.default ?? 1 })
+        updateEffect(target, effect.id, { type, amount: EFFECTS[type].param?.default ?? 1, keep: true })
     }
 
     return (
         <li className="space-y-3 border-t border-line/70 py-3 first:border-t-0 first:pt-0">
             <div className="flex items-center gap-1">
                 <span className="w-4 shrink-0 text-xs text-dim" aria-hidden="true">{index + 1}</span>
-                <Select aria-label={`Effect ${index + 1}`} value={effect.type} onChange={(e) => changeType(e.target.value as EffectType)} className="flex-1">
-                    <EffectTypeOptions />
-                </Select>
+                <Select aria-label={`Effect ${index + 1}`} value={effect.type} options={effectOptions} onChange={changeType} className="flex-1" />
+                <IconButton
+                    size="sm"
+                    icon={effect.keep ? Lock : LockOpen}
+                    label={effect.keep ? `${def.label} is kept: Mosh only changes its amount` : `Keep ${def.label} when moshing`}
+                    active={effect.keep}
+                    onClick={() => updateEffect(target, effect.id, { keep: !effect.keep })}
+                />
                 <IconButton size="sm" icon={ArrowUp} label={`Move ${def.label} up`} disabled={index === 0} onClick={() => move(-1)} />
                 <IconButton size="sm" icon={ArrowDown} label={`Move ${def.label} down`} disabled={index === count - 1} onClick={() => move(1)} />
                 <IconButton
@@ -101,20 +92,20 @@ function EffectRow({ target, effect, index, count }: { target: FxTarget; effect:
                     </Toggle>
                     <Select
                         aria-label={`${def.label} oscillation rate`}
+                        size="sm"
                         value={effect.osc.rate}
-                        onChange={(e) => updateEffect(target, effect.id, { osc: { ...effect.osc, rate: Number(e.target.value) } })}
-                        className="h-7 flex-1 text-xs"
-                    >
-                        {OSC_RATES.map((r) => <option key={r} value={r}>{rateLabel(r)}</option>)}
-                    </Select>
+                        options={rateOptions()}
+                        onChange={(rate) => updateEffect(target, effect.id, { osc: { ...effect.osc, rate } })}
+                        className="flex-1"
+                    />
                     <Select
                         aria-label={`${def.label} oscillation shape`}
+                        size="sm"
                         value={effect.osc.shape}
-                        onChange={(e) => updateEffect(target, effect.id, { osc: { ...effect.osc, shape: e.target.value as Effect['osc']['shape'] } })}
-                        className="h-7 flex-1 text-xs capitalize"
-                    >
-                        {WaveShapeSchema.options.map((s) => <option key={s} value={s}>{s}</option>)}
-                    </Select>
+                        options={shapeOptions}
+                        onChange={(shape) => updateEffect(target, effect.id, { osc: { ...effect.osc, shape } })}
+                        className="flex-1"
+                    />
                 </div>
             )}
 
@@ -147,17 +138,15 @@ export function EffectStack({ target }: { target: FxTarget }) {
             )}
             <Select
                 aria-label="Add effect"
-                value=""
+                value={null}
+                placeholder={full ? `Up to ${MAX_EFFECTS} effects` : '+ Add effect'}
                 disabled={full}
-                onChange={(e) => {
-                    if (!e.target.value) return
+                options={effectOptions}
+                onChange={(type) => {
                     checkpoint('add effect')
-                    setEffects(target, [...effects, createEffect(e.target.value as EffectType)])
+                    setEffects(target, [...effects, createEffect(type, { keep: true })])
                 }}
-            >
-                <option value="">{full ? `Up to ${MAX_EFFECTS} effects` : '+ Add effect'}</option>
-                <EffectTypeOptions />
-            </Select>
+            />
         </div>
     )
 }

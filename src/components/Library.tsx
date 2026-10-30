@@ -70,8 +70,9 @@ export function MyVideos() {
 
     return (
         <div className="space-y-2">
+            <p className="text-xs font-medium text-dim" aria-hidden="true">Shuffle picks from (both sources)</p>
             <Segmented
-                label="Shuffle picks from"
+                label="Shuffle picks from (both sources)"
                 value={useMyPool && pool.length ? 'mine' : 'picks'}
                 options={[
                     { value: 'picks', label: 'Moshtube picks' },

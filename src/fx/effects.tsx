@@ -5,6 +5,9 @@ import { EffectTypeSchema, OSC_RATES, WaveShapeSchema } from '../store/schema'
 // Effects are CSS filter functions, SVG filters, or transforms applied to a layer wrapper.
 // Values change every frame (oscillation), so SVG attributes are written imperatively.
 
+// SVG filters on full-frame video get expensive fast
+export const MAX_EFFECTS = 4
+
 export interface EffectParam {
     label: string
     min: number
@@ -340,19 +343,27 @@ export function createEffect(type: EffectType, overrides: Partial<Effect> = {}):
         type,
         amount: param?.default ?? 1,
         osc: { on: false, rate: 16, shape: 'sine' },
+        keep: false,
         ...overrides,
     }
 }
 
 const pick = <T,>(arr: readonly T[]) => arr[Math.floor(Math.random() * arr.length)]
 
-export function randomEffect(): Effect {
-    const type = pick(EffectTypeSchema.options.filter((t) => !EFFECTS[t].flashing))
+// A random amount in the useful part of an effect's range (not the very bottom)
+export function randomAmount(type: EffectType) {
     const param = EFFECTS[type].param
-    // Keep random picks out of the very bottom of the range so they read as an effect
-    const amount = param ? param.min + (0.35 + Math.random() * 0.65) * (param.max - param.min) : 1
+    if (!param) return 1
+    const amount = param.min + (0.35 + Math.random() * 0.65) * (param.max - param.min)
+    return Math.round(amount / param.step) * param.step
+}
+
+// `exclude` keeps one roll from stacking the same effect twice
+export function randomEffect(exclude: EffectType[] = []): Effect {
+    const type = pick(EffectTypeSchema.options.filter((t) => !EFFECTS[t].flashing && !exclude.includes(t)))
+    const param = EFFECTS[type].param
     const osc = param && Math.random() > 0.5
         ? { on: true, rate: pick(OSC_RATES.filter((r) => r >= 4)), shape: pick(WaveShapeSchema.options) }
         : { on: false, rate: 16, shape: 'sine' as const }
-    return createEffect(type, { amount: param ? Math.round(amount / param.step) * param.step : 1, osc })
+    return createEffect(type, { amount: randomAmount(type), osc })
 }

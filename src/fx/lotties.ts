@@ -10,7 +10,7 @@ const WHITE = [1, 1, 1, 1]
 type Value = number[]
 type Keyframe = { t: number; s: Value; h?: 1; o?: { x: number[]; y: number[] }; i?: { x: number[]; y: number[] } }
 
-const still = (k: number | number[]) => ({ a: 0, k })
+const still = (k: unknown) => ({ a: 0, k })
 const moving = (k: Keyframe[]) => ({ a: 1, k })
 const LINEAR = { o: { x: [0], y: [0] }, i: { x: [1], y: [1] } }
 const EASE_OUT = { o: { x: [0.16], y: [1] }, i: { x: [0.3], y: [1] } }
@@ -61,6 +61,18 @@ const polygon = (points: number, radius: number) => ({ ty: 'sr', sy: 2, d: 1, pt
 const star = (points: number, inner: number, outer: number) => ({
     ty: 'sr', sy: 1, d: 1, pt: still(points), p: still([0, 0]), r: still(0), ir: still(inner), is: still(0), or: still(outer), os: still(0),
 })
+
+// Open or closed path through the given points (straight segments)
+const path = (points: Value[], closed = false) => ({
+    ty: 'sh',
+    ks: still({ i: points.map(() => [0, 0]), o: points.map(() => [0, 0]), v: points, c: closed }),
+})
+
+// A value that moves through `samples` evenly across the loop (eased), ending where it started
+function cycle(samples: Value[]): Keyframe[] {
+    const step = FRAMES / samples.length
+    return [...samples.map((s, k) => ({ t: k * step, s, o: { x: [0.4], y: [0] }, i: { x: [0.6], y: [1] } })), { t: FRAMES, s: samples[0] }]
+}
 
 let layerIndex = 0
 function layer(shapes: unknown[], ks: Partial<Record<'o' | 'r' | 'p' | 's', unknown>> = {}) {
@@ -124,6 +136,78 @@ const BUILDERS = {
             group([rect(W + 40, 160, [0, -90]), fill()], transform({ o: still(18) })),
         ], { p: moving(loopRamp([W / 2, -100, 0], [W / 2, H + 200, 0])) }),
     ]),
+    squares: () => animation('Squares', [0, 1, 2, 3].map((i) =>
+        layer([group([rect(220, 220), stroke(8)])], {
+            s: moving(loopRamp([10, 10, 100], [900, 900, 100], i / 4)),
+            o: moving(loopRamp([100], [0], i / 4)),
+            r: moving(loopRamp([0], [90], i / 4)),
+        })
+    )),
+    dots: () => animation('Dots', [layer(Array.from({ length: 16 * 9 }, (_, n) => {
+        const x = n % 16
+        const y = Math.floor(n / 16)
+        const keys: Keyframe[] = [0, 1, 2, 3].flatMap((b) => {
+            const lit = seeded(n * 3.1 + b * 17.7) > 0.62
+            return [{ t: b * 30, s: [lit ? 100 : 12], h: 1 as const }]
+        })
+        keys.push({ t: FRAMES, s: keys[0].s })
+        return group([ellipse(30, [-W / 2 + 120 + x * 112, -H / 2 + 100 + y * 110]), fill()], transform({ o: moving(keys) }))
+    }))]),
+    rain: () => animation('Rain', [layer(Array.from({ length: 22 }, (_, i) => {
+        const x = -W / 2 + seeded(i * 4.7) * W
+        const phase = seeded(i * 9.3)
+        return group([rect(5, 140 + seeded(i) * 160), fill()], transform({
+            p: moving(loopRamp([x, -H / 2 - 300], [x, H / 2 + 300], phase)),
+            o: still(40 + seeded(i * 2.1) * 60),
+        }))
+    }))]),
+    wave: () => animation('Wave', [layer(Array.from({ length: 28 }, (_, i) => {
+        const x = -W / 2 + 120 + i * ((W - 240) / 27)
+        const samples = Array.from({ length: 8 }, (_, k) => [x, Math.sin((k / 8 + i / 28) * Math.PI * 2) * 220])
+        return group([ellipse(34), fill()], transform({ p: moving(cycle(samples)) }))
+    }))]),
+    flower: () => animation('Flower', [
+        layer([group([star(6, 120, 380), stroke(6)])], { r: moving(loopRamp([0], [60])) }),
+        layer([group([star(8, 80, 250), stroke(5)])], { r: moving(loopRamp([0], [-90])) }),
+        layer([group([star(5, 40, 130), fill()])], { r: moving(loopRamp([0], [144])), s: moving(onBeats([125, 125, 100], [100, 100, 100])) }),
+    ]),
+    pinwheel: () => animation('Pinwheel', [
+        layer(Array.from({ length: 6 }, (_, i) =>
+            group([rect(80, 360, [0, -220]), fill()], transform({ r: still(i * 60), o: still(i % 2 ? 55 : 100) }))
+        ), { r: moving(loopRamp([0], [120])), s: moving(onBeats([112, 112, 100], [96, 96, 100])) }),
+    ]),
+    crosshair: () => animation('Crosshair', [
+        layer([
+            group([ellipse(520), stroke(4)]),
+            group([ellipse(260), stroke(4)]),
+            group([path([[-420, 0], [-150, 0]]), path([[150, 0], [420, 0]]), path([[0, -420], [0, -150]]), path([[0, 150], [0, 420]]), stroke(4)]),
+            group([ellipse(24), fill()]),
+        ], { r: moving(loopRamp([0], [90])), s: moving(onBeats([108, 108, 100], [100, 100, 100])) }),
+    ]),
+    tiles: () => animation('Tiles', [layer(Array.from({ length: 10 * 5 }, (_, n) => {
+        const x = n % 10
+        const y = Math.floor(n / 10)
+        const phase = ((x + y) % 10) / 10
+        return group([rect(150, 150), fill()], transform({
+            p: still([-W / 2 + 150 + x * 180, -H / 2 + 150 + y * 195]),
+            s: moving(cycle([0, 1, 2, 3].map((k) => [Math.abs(Math.cos((k / 4 + phase) * Math.PI)) * 100, 100]))),
+            o: still((x + y) % 2 ? 35 : 90),
+        }))
+    }))]),
+    zigzag: () => animation('Zigzag', [0, 1, 2].map((row) => {
+        const period = 240
+        const points = Array.from({ length: 26 }, (_, k) => [-W / 2 - period * 1.5 + k * (period / 2), k % 2 ? -60 : 60])
+        return layer([group([path(points), stroke(10)])], {
+            p: moving(loopRamp([W / 2, H / 2 + (row - 1) * 300, 0], [W / 2 + (row % 2 ? -period : period), H / 2 + (row - 1) * 300, 0])),
+            o: still(row === 1 ? 100 : 50),
+        })
+    })),
+    sun: () => animation('Sun', [
+        layer([group([ellipse(260), fill()])], { s: moving(onBeats([112, 112, 100], [100, 100, 100])) }),
+        layer(Array.from({ length: 16 }, (_, i) =>
+            group([rect(18, i % 2 ? 120 : 200, [0, -280]), fill()], transform({ r: still(i * 22.5) }))
+        ), { r: moving(loopRamp([0], [45])), s: moving(onBeats([118, 118, 100], [100, 100, 100])) }),
+    ]),
 } as const
 
 export type BuiltInLottie = keyof typeof BUILDERS
@@ -135,6 +219,16 @@ export const LOTTIE_LABELS: Record<BuiltInLottie, string> = {
     burst: 'Burst',
     orbit: 'Orbit',
     scan: 'Scan',
+    squares: 'Squares',
+    dots: 'Dots',
+    rain: 'Rain',
+    wave: 'Wave',
+    flower: 'Flower',
+    pinwheel: 'Pinwheel',
+    crosshair: 'Crosshair',
+    tiles: 'Tiles',
+    zigzag: 'Zigzag',
+    sun: 'Sun',
 }
 
 export const BUILT_IN_LOTTIES = Object.keys(BUILDERS) as BuiltInLottie[]

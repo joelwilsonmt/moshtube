@@ -2,7 +2,7 @@ import { appStore, updateVideoState, setBlendMode, setMix, setMixOsc, setOverlay
 import { checkpoint, withoutHistory } from '../store/history'
 import { announce, flashChanged } from '../store/uiStore'
 import { BlendModeSchema, OSC_RATES, PatternSchema, type SourceId } from '../store/schema'
-import { EFFECTS, randomEffect } from '../fx/effects'
+import { EFFECTS, MAX_EFFECTS, randomAmount, randomEffect } from '../fx/effects'
 import { PATTERN_LABELS } from '../fx/patterns'
 import { BUILT_IN_LOTTIES, isBuiltInLottie, LOTTIE_LABELS } from '../fx/lotties'
 import { loadRandomVideo, randomPoolId } from './youtube'
@@ -13,10 +13,17 @@ const letter = (id: SourceId) => (id === 'videoA' ? 'A' : 'B')
 
 // Returns a short description for the status line, or null if the layer is held
 function moshEffects(id: SourceId) {
-    if (appStore.getState()[id].hold) return null
-    const effects = Math.random() < 0.3 ? [randomEffect(), randomEffect()] : [randomEffect()]
+    const { hold, effects: current } = appStore.getState()[id]
+    if (hold) return null
+    // Effects added by hand stay; Mosh only rerolls how much of each
+    const kept = current.filter((e) => e.keep).map((e) => ({ ...e, amount: randomAmount(e.type) }))
+    const room = Math.max(0, MAX_EFFECTS - kept.length)
+    const rolls = Math.min(room, Math.random() < 0.3 ? 2 : 1)
+    const fresh: typeof current = []
+    for (let i = 0; i < rolls; i++) fresh.push(randomEffect([...kept, ...fresh].map((e) => e.type)))
+    const effects = [...kept, ...fresh]
     updateVideoState(id, { effects })
-    return `${letter(id)}: ${effects.map((e) => EFFECTS[e.type].label).join(' + ')}`
+    return `${letter(id)}: ${effects.map((e) => EFFECTS[e.type].label + (e.keep ? ' (kept)' : '')).join(' + ')}`
 }
 
 type Change = { id: string; text: string } | null
