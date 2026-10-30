@@ -4,6 +4,7 @@ import { Github, Link2, Maximize, Redo2, Undo2 } from 'lucide-react'
 import { historyStore, redo, undo } from '../store/history'
 import { announce, uiStore } from '../store/uiStore'
 import { Button, IconButton } from './ui/core'
+import { ShortcutsButton, Tempo } from './Tempo'
 
 const STATUS_MS = 4000
 
@@ -45,6 +46,7 @@ export function TopBar({ onFullscreen }: { onFullscreen: () => void }) {
     return (
         <header className="flex h-11 items-center gap-4 border-b border-line bg-panel px-3">
             <h1 className="shrink-0"><Wordmark /></h1>
+            <Tempo />
             <StatusLine className="min-w-0 flex-1" />
             <div className="flex shrink-0 items-center gap-1">
                 <IconButton icon={Undo2} label="Undo (Z)" onClick={undo} disabled={!canUndo} />
@@ -55,6 +57,7 @@ export function TopBar({ onFullscreen }: { onFullscreen: () => void }) {
                     Copy link
                 </Button>
                 <IconButton icon={Maximize} label="Fullscreen (F)" onClick={onFullscreen} />
+                <ShortcutsButton />
                 <a
                     href="https://github.com/joelwilsonmt/moshtube"
                     target="_blank"

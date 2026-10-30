@@ -22,6 +22,9 @@ export const BlendModeSchema = z.enum([
   'exclusion'
 ])
 
+export const MoshScopeSchema = z.enum(['mosh', 'everything', 'daddy'])
+export const AUTO_MOSH_BARS = [1, 2, 4, 8, 16] as const
+
 // Oscillation rate is in beats per full cycle, synced to the tempo clock
 export const OSC_RATES = [1, 2, 4, 8, 16, 32] as const
 
@@ -64,6 +67,11 @@ export const AppStateSchema = z.object({
   masterEffects: z.array(EffectSchema).default([]),
   outputPlaying: z.boolean().default(true), // Master render loop
   bpm: z.number().min(40).max(240).default(120),
+  autoMosh: z.object({
+    on: z.boolean().default(false),
+    bars: z.number().default(4),
+    scope: MoshScopeSchema.default('everything'),
+  }),
   locks: z.object({
     mix: z.boolean().default(false),
     blend: z.boolean().default(false),
@@ -78,6 +86,7 @@ export type Effect = z.infer<typeof EffectSchema>
 export type VideoState = z.infer<typeof VideoStateSchema>
 export type AppState = z.infer<typeof AppStateSchema>
 export type SourceId = 'videoA' | 'videoB'
+export type MoshScope = z.infer<typeof MoshScopeSchema>
 
 const defaultVideo = (id: string): VideoState => ({
   id, start: 0, end: 10, duration: 100, loop: true, playing: true, lastInteraction: 0, effects: [], hold: false,
@@ -93,5 +102,6 @@ export const defaultState: AppState = {
   masterEffects: [],
   outputPlaying: true,
   bpm: 120,
+  autoMosh: { on: false, bars: 4, scope: 'everything' },
   locks: { mix: false, blend: false },
 }

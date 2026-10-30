@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
-import { appStore, setOutputPlaying } from '../store/appStore'
+import { appStore, setAutoMosh, setOutputPlaying } from '../store/appStore'
+import { tap } from '../engine/tempo'
 import { redo, undo } from '../store/history'
 import { moshEverything, moshGlobal, moshMeDaddy } from '../utils/mosh'
 
@@ -8,9 +9,12 @@ export const SHORTCUTS = [
     { keys: '2', action: 'Mosh Everything: effects, blend and mix' },
     { keys: '3', action: 'Mosh Me Daddy: new videos + everything' },
     { keys: 'Space', action: 'Play or pause the output' },
+    { keys: 'T', action: 'Tap tempo' },
+    { keys: 'A', action: 'Auto-mosh on or off' },
     { keys: 'Z', action: 'Undo' },
     { keys: 'Shift Z', action: 'Redo' },
     { keys: 'F', action: 'Fullscreen' },
+    { keys: '?', action: 'Show shortcuts' },
 ] as const
 
 const isTyping = (el: EventTarget | null) =>
@@ -30,6 +34,9 @@ export function useShortcuts(handlers: { fullscreen: () => void }) {
                 z: undo,
                 Z: redo,
                 f: handlers.fullscreen,
+                t: tap,
+                a: () => setAutoMosh({ on: !appStore.getState().autoMosh.on }),
+                '?': () => document.getElementById('shortcuts')?.togglePopover(),
             }
             const action = actions[e.key]
             if (!action) return

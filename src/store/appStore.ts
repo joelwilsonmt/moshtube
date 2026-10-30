@@ -25,6 +25,8 @@ export const setActiveOverlay = (id: SourceId) => appStore.setState({ activeOver
 export const swapLayers = () => appStore.setState((s) => ({ activeOverlay: s.activeOverlay === 'videoA' ? 'videoB' : 'videoA' }))
 export const setOutputPlaying = (playing: boolean) => appStore.setState({ outputPlaying: playing })
 export const setBpm = (bpm: number) => appStore.setState({ bpm: Math.round(Math.min(240, Math.max(40, bpm)) * 10) / 10 })
+export const setAutoMosh = (updates: Partial<AppState['autoMosh']>) =>
+  appStore.setState((s) => ({ autoMosh: { ...s.autoMosh, ...updates } }))
 export const setLock = (key: keyof AppState['locks'], value: boolean) =>
   appStore.setState((s) => ({ locks: { ...s.locks, [key]: value } }))
 

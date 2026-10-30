@@ -5,6 +5,7 @@ import { appStore, setOutputPlaying } from '../store/appStore'
 import { historyStore, undo } from '../store/history'
 import { useMediaQuery } from '../hooks/useLive'
 import { useShortcuts } from '../hooks/useShortcuts'
+import { useAutoMosh } from '../engine/tempo'
 import { IDLE_TIMEOUT_MS } from '../utils/config'
 import { moshMeDaddy } from '../utils/mosh'
 import { Stage } from './Stage'
@@ -68,7 +69,7 @@ function DesktopView() {
     useShortcuts({ fullscreen: toggleFullscreen })
 
     return (
-        <div className="grid h-[100dvh] min-h-[600px] grid-rows-[auto_minmax(0,1fr)_auto]">
+        <div className="grid h-[100dvh] min-h-[600px] grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto]">
             <TopBar onFullscreen={toggleFullscreen} />
             <div className="grid min-h-0 grid-cols-[minmax(0,1fr)_320px]">
                 <main ref={stageRef} className={cn('relative min-w-0 bg-black', isFullscreen && idle && 'cursor-none')}>
@@ -126,6 +127,7 @@ function MobileView() {
 }
 
 export function Dashboard() {
+    useAutoMosh()
     const isPhone = useMediaQuery('(max-width: 767px)')
     return isPhone ? <MobileView /> : <DesktopView />
 }

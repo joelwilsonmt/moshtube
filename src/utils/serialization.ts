@@ -1,5 +1,5 @@
 import {
-  AppStateSchema, BlendModeSchema, defaultState, EffectTypeSchema, WaveShapeSchema,
+  AppStateSchema, BlendModeSchema, defaultState, EffectTypeSchema, MoshScopeSchema, WaveShapeSchema,
   type AppState, type Effect, type Osc, type VideoState,
 } from '../store/schema'
 import { createEffect, EFFECTS } from '../fx/effects'
@@ -61,6 +61,7 @@ export function serializeState(state: AppState): URLSearchParams {
   params.set('overlay', state.activeOverlay)
   if (state.masterEffects.length) params.set('m_fx', encodeEffects(state.masterEffects))
   if (state.bpm !== defaultState.bpm) params.set('bpm', String(state.bpm))
+  if (state.autoMosh.on) params.set('auto', `${state.autoMosh.bars}:${state.autoMosh.scope}`)
   const locks = [state.locks.mix && 'mix', state.locks.blend && 'blend'].filter(Boolean)
   if (locks.length) params.set('lock', locks.join(','))
 
@@ -100,6 +101,9 @@ export function deserializeState(params: URLSearchParams): Partial<AppState> {
   const overlay = AppStateSchema.shape.activeOverlay.safeParse(params.get('overlay'))
   const locks = (params.get('lock') ?? '').split(',')
   const [rate, shape] = (params.get('mix_osc') ?? '').split(':')
+  const [autoBars, autoScope] = (params.get('auto') ?? '').split(':')
+  const bars = parseFloat(autoBars)
+  const scope = MoshScopeSchema.safeParse(autoScope)
 
   return {
     videoA: deserializeVideo(params, 'a', defaultState.videoA),
@@ -110,6 +114,9 @@ export function deserializeState(params: URLSearchParams): Partial<AppState> {
     activeOverlay: overlay.success ? overlay.data : defaultState.activeOverlay,
     masterEffects: params.has('m_fx') ? decodeEffects(params.get('m_fx')!) : [],
     bpm: Math.min(240, Math.max(40, num(params, 'bpm', defaultState.bpm))),
+    autoMosh: params.has('auto') && Number.isFinite(bars) && bars > 0
+      ? { on: true, bars, scope: scope.success ? scope.data : 'everything' }
+      : { ...defaultState.autoMosh },
     locks: { mix: locks.includes('mix'), blend: locks.includes('blend') },
   }
 }
