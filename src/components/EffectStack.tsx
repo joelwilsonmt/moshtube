@@ -49,14 +49,14 @@ function EffectRow({ target, effect, index, count }: { target: FxTarget; effect:
     const effects = () => getEffects(appStore.getState(), target)
 
     const move = (dir: -1 | 1) => {
-        checkpoint()
+        checkpoint('effect reorder')
         const list = [...effects()]
         ;[list[index], list[index + dir]] = [list[index + dir], list[index]]
         setEffects(target, list)
     }
 
     const changeType = (type: EffectType) => {
-        checkpoint()
+        checkpoint('effect change')
         // Keep the slot and its oscillation; reset the amount to the new effect's default
         updateEffect(target, effect.id, { type, amount: EFFECTS[type].param?.default ?? 1 })
     }
@@ -74,7 +74,7 @@ function EffectRow({ target, effect, index, count }: { target: FxTarget; effect:
                     size="sm"
                     icon={X}
                     label={`Remove ${def.label}`}
-                    onClick={() => { checkpoint(); setEffects(target, effects().filter((e) => e.id !== effect.id)) }}
+                    onClick={() => { checkpoint(`remove ${def.label}`); setEffects(target, effects().filter((e) => e.id !== effect.id)) }}
                 />
             </div>
 
@@ -102,7 +102,7 @@ function EffectRow({ target, effect, index, count }: { target: FxTarget; effect:
                     <Select
                         aria-label={`${def.label} oscillation rate`}
                         value={effect.osc.rate}
-                        onChange={(e) => updateEffect(target, effect.id, { osc: { ...effect.osc, on: true, rate: Number(e.target.value) } })}
+                        onChange={(e) => updateEffect(target, effect.id, { osc: { ...effect.osc, rate: Number(e.target.value) } })}
                         className="h-7 flex-1 text-xs"
                     >
                         {OSC_RATES.map((r) => <option key={r} value={r}>{rateLabel(r)}</option>)}
@@ -110,7 +110,7 @@ function EffectRow({ target, effect, index, count }: { target: FxTarget; effect:
                     <Select
                         aria-label={`${def.label} oscillation shape`}
                         value={effect.osc.shape}
-                        onChange={(e) => updateEffect(target, effect.id, { osc: { ...effect.osc, on: true, shape: e.target.value as Effect['osc']['shape'] } })}
+                        onChange={(e) => updateEffect(target, effect.id, { osc: { ...effect.osc, shape: e.target.value as Effect['osc']['shape'] } })}
                         className="h-7 flex-1 text-xs capitalize"
                     >
                         {WaveShapeSchema.options.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -151,7 +151,7 @@ export function EffectStack({ target }: { target: FxTarget }) {
                 disabled={full}
                 onChange={(e) => {
                     if (!e.target.value) return
-                    checkpoint()
+                    checkpoint('add effect')
                     setEffects(target, [...effects, createEffect(e.target.value as EffectType)])
                 }}
             >

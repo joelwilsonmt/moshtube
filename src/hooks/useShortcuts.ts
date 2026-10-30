@@ -17,15 +17,31 @@ export const SHORTCUTS = [
     { keys: '?', action: 'Show shortcuts' },
 ] as const
 
+// Only text entry swallows shortcuts; sliders, checkboxes and buttons don't type
+const TEXT_INPUTS = ['text', 'search', 'url', 'email', 'number', 'password', 'tel']
 const isTyping = (el: EventTarget | null) =>
-    el instanceof HTMLElement && (el.isContentEditable || ['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName))
+    el instanceof HTMLElement &&
+    (el.isContentEditable ||
+        el.tagName === 'TEXTAREA' ||
+        el.tagName === 'SELECT' ||
+        (el instanceof HTMLInputElement && TEXT_INPUTS.includes(el.type)))
+
+// Space activates a button reached by Tab; after a mouse click it means play/pause.
+// (:focus-visible can't tell: Chrome turns it on as soon as any key is pressed.)
+let focusedByKeyboard = false
+window.addEventListener('pointerdown', () => { focusedByKeyboard = false }, true)
+window.addEventListener('keydown', (e) => { if (e.key === 'Tab') focusedByKeyboard = true }, true)
+
+const ownsSpace = (el: EventTarget | null) =>
+    el instanceof HTMLElement &&
+    (((el.tagName === 'BUTTON' || el.tagName === 'SUMMARY') && focusedByKeyboard) ||
+        (el instanceof HTMLInputElement && el.type === 'checkbox'))
 
 export function useShortcuts(handlers: { fullscreen: () => void }) {
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             if (e.metaKey || e.ctrlKey || e.altKey || e.repeat || isTyping(e.target)) return
-            // Buttons handle Space themselves
-            if (e.key === ' ' && e.target instanceof HTMLButtonElement) return
+            if (e.key === ' ' && ownsSpace(e.target)) return
             const actions: Record<string, () => void> = {
                 '1': moshGlobal,
                 '2': moshEverything,

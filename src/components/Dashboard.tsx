@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useStore } from 'zustand'
-import { Link2, Minimize, Pause, Play, Sparkles, Undo2 } from 'lucide-react'
-import { appStore, setOutputPlaying } from '../store/appStore'
+import { Link2, Minimize, Sparkles, Undo2 } from 'lucide-react'
 import { historyStore, undo } from '../store/history'
 import { useMediaQuery } from '../hooks/useLive'
 import { useShortcuts } from '../hooks/useShortcuts'
@@ -9,7 +8,7 @@ import { useAutoMosh } from '../engine/tempo'
 import { IDLE_TIMEOUT_MS } from '../utils/config'
 import { moshMeDaddy } from '../utils/mosh'
 import { Stage } from './Stage'
-import { copyLink, StatusLine, TopBar, Wordmark } from './TopBar'
+import { copyLink, PlayToggle, StatusLine, TopBar, Wordmark } from './TopBar'
 import { Inspector } from './Inspector'
 import { Mixer } from './Mixer'
 import { MoshCluster } from './MoshCluster'
@@ -34,20 +33,6 @@ function useIdle(enabled: boolean) {
         }
     }, [enabled])
     return idle
-}
-
-function PlayToggle({ className, withText = false }: { className?: string; withText?: boolean }) {
-    const playing = useStore(appStore, (s) => s.outputPlaying)
-    const label = playing ? 'Pause output (Space)' : 'Play output (Space)'
-    if (withText) {
-        return (
-            <Button onClick={() => setOutputPlaying(!playing)} className={className}>
-                {playing ? <Pause size={16} aria-hidden="true" /> : <Play size={16} aria-hidden="true" />}
-                {playing ? 'Pause' : 'Play'}
-            </Button>
-        )
-    }
-    return <IconButton icon={playing ? Pause : Play} label={label} onClick={() => setOutputPlaying(!playing)} className={className} />
 }
 
 function DesktopView() {
@@ -102,7 +87,7 @@ function MobileView() {
         <div className="flex min-h-[100dvh] flex-col">
             <header className="flex h-12 items-center justify-between border-b border-line bg-panel px-4">
                 <h1><Wordmark /></h1>
-                <IconButton icon={Link2} label="Copy link to this mix" onClick={copyLink} />
+                <IconButton icon={Link2} label="Copy link to this mix" onClick={copyLink} className="h-11 w-11" />
             </header>
             <main className="relative min-h-[40dvh] w-full flex-1 bg-black">
                 <Stage />

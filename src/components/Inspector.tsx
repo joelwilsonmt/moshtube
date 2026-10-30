@@ -61,7 +61,7 @@ function SourceInspector({ id }: { id: SourceId }) {
         setDraft(val)
         const nextId = parseYouTubeId(val)
         if (nextId && nextId !== state.id) {
-            checkpoint()
+            checkpoint('video change')
             updateVideoState(id, { id: nextId, playing: true, ...FULL_LOOP })
         }
     }
@@ -85,7 +85,7 @@ function SourceInspector({ id }: { id: SourceId }) {
                                 className="flex-1"
                                 spellCheck={false}
                             />
-                            <IconButton icon={Shuffle} label="Random video" onClick={() => { checkpoint(); void loadRandomVideo(id, FULL_LOOP) }} className="border border-edge" />
+                            <IconButton icon={Shuffle} label="Random video" onClick={() => { checkpoint('random video'); void loadRandomVideo(id, FULL_LOOP) }} className="border border-edge" />
                         </div>
                     )}
                 </Field>
@@ -177,13 +177,13 @@ function OverlayInspector() {
                         { value: 'pattern', label: 'Pattern' },
                         { value: 'media', label: 'Video or GIF' },
                     ]}
-                    onChange={(kind) => { checkpoint(); setOverlay({ kind }) }}
+                    onChange={(kind) => { checkpoint('Layer C content'); setOverlay({ kind }) }}
                 />
                 {overlay.kind === 'pattern' && (
                     <>
                         <Field label="Pattern">
                             {(fieldId) => (
-                                <Select id={fieldId} value={overlay.pattern} onChange={(e) => { checkpoint(); setOverlay({ pattern: e.target.value as Pattern }) }}>
+                                <Select id={fieldId} value={overlay.pattern} onChange={(e) => { checkpoint('pattern change'); setOverlay({ pattern: e.target.value as Pattern }) }}>
                                     {PatternSchema.options.map((p) => <option key={p} value={p}>{PATTERN_LABELS[p]}</option>)}
                                 </Select>
                             )}
@@ -202,7 +202,7 @@ function OverlayInspector() {
                         onSubmit={(e) => {
                             e.preventDefault()
                             if (!urlValid) return
-                            checkpoint()
+                            checkpoint('Layer C link')
                             setOverlay({ url: url.trim() })
                         }}
                     >
@@ -237,7 +237,7 @@ function OverlayInspector() {
                     </Field>
                     <Field label="Blend">
                         {(fieldId) => (
-                            <Select id={fieldId} value={overlay.blend} onChange={(e) => { checkpoint(); setOverlay({ blend: e.target.value as Overlay['blend'] }) }}>
+                            <Select id={fieldId} value={overlay.blend} onChange={(e) => { checkpoint('Layer C blend'); setOverlay({ blend: e.target.value as Overlay['blend'] }) }}>
                                 {BlendModeSchema.options.map((m) => <option key={m} value={m}>{BLEND_LABELS[m]}</option>)}
                             </Select>
                         )}
@@ -254,7 +254,7 @@ function MasterBlend() {
         <Section title="Blend">
             <Field label="How the top source mixes with the one below">
                 {(fieldId) => (
-                    <Select id={fieldId} value={blendMode} aria-describedby="blend-hint" onChange={(e) => { checkpoint(); setBlendMode(e.target.value as BlendMode) }}>
+                    <Select id={fieldId} value={blendMode} aria-describedby="blend-hint" onChange={(e) => { checkpoint('blend change'); setBlendMode(e.target.value as BlendMode) }}>
                         {BlendModeSchema.options.map((m) => <option key={m} value={m}>{BLEND_LABELS[m]}</option>)}
                     </Select>
                 )}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useStore } from 'zustand'
-import { Github, Link2, Maximize, Redo2, Undo2 } from 'lucide-react'
+import { Github, Link2, Maximize, Pause, Play, Redo2, Undo2 } from 'lucide-react'
+import { appStore, setOutputPlaying } from '../store/appStore'
 import { historyStore, redo, undo } from '../store/history'
 import { announce, uiStore } from '../store/uiStore'
 import { Button, IconButton } from './ui/core'
@@ -41,6 +42,20 @@ export async function copyLink() {
     }
 }
 
+export function PlayToggle({ className, withText = false }: { className?: string; withText?: boolean }) {
+    const playing = useStore(appStore, (s) => s.outputPlaying)
+    const label = playing ? 'Pause output (Space)' : 'Play output (Space)'
+    if (withText) {
+        return (
+            <Button onClick={() => setOutputPlaying(!playing)} className={className}>
+                {playing ? <Pause size={16} aria-hidden="true" /> : <Play size={16} aria-hidden="true" />}
+                {playing ? 'Pause' : 'Play'}
+            </Button>
+        )
+    }
+    return <IconButton icon={playing ? Pause : Play} label={label} onClick={() => setOutputPlaying(!playing)} className={className} />
+}
+
 export function TopBar({ onFullscreen }: { onFullscreen: () => void }) {
     const canUndo = useStore(historyStore, (h) => h.past.length > 0)
     const canRedo = useStore(historyStore, (h) => h.future.length > 0)
@@ -51,6 +66,7 @@ export function TopBar({ onFullscreen }: { onFullscreen: () => void }) {
             <Tempo />
             <StatusLine className="min-w-0 flex-1" />
             <div className="flex shrink-0 items-center gap-1">
+                <PlayToggle />
                 <IconButton icon={Undo2} label="Undo (Z)" onClick={undo} disabled={!canUndo} />
                 <IconButton icon={Redo2} label="Redo (Shift+Z)" onClick={redo} disabled={!canRedo} />
                 <div className="mx-1.5 h-5 w-px bg-line" />

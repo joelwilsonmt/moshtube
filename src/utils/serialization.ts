@@ -47,7 +47,8 @@ function serializeVideo(params: URLSearchParams, p: 'a' | 'b', v: VideoState) {
   params.set(`${p}_loop`, v.loop ? '1' : '0')
   if (v.effects.length) params.set(`${p}_fx`, encodeEffects(v.effects))
   if (v.hold) params.set(`${p}_hold`, '1')
-  if (v.lastInteraction) params.set(`${p}_li`, v.lastInteraction.toString())
+  // Only whether the loop was set by hand matters to whoever opens the link
+  if (v.lastInteraction) params.set(`${p}_li`, '1')
 }
 
 export function serializeState(state: AppState): URLSearchParams {
@@ -69,6 +70,7 @@ export function serializeState(state: AppState): URLSearchParams {
     params.set('c_op', c.opacity.toFixed(2))
     params.set('c_blend', c.blend)
   }
+  if (c.hold) params.set('c_hold', '1')
   if (state.autoMosh.on) params.set('auto', `${state.autoMosh.bars}:${state.autoMosh.scope}`)
   const locks = [state.locks.mix && 'mix', state.locks.blend && 'blend'].filter(Boolean)
   if (locks.length) params.set('lock', locks.join(','))
@@ -125,6 +127,7 @@ export function deserializeState(params: URLSearchParams): Partial<AppState> {
     url: /^https?:\/\//.test(cUrl) ? cUrl : '',
     opacity: Math.min(1, Math.max(0, num(params, 'c_op', defaultState.overlay.opacity))),
     blend: cBlend.success ? cBlend.data : defaultState.overlay.blend,
+    hold: params.get('c_hold') === '1',
   }
 
   return {

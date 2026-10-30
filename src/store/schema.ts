@@ -32,6 +32,7 @@ export const OverlaySchema = z.object({
   url: z.string().default(''),
   opacity: z.number().min(0).max(1).default(0.7),
   blend: BlendModeSchema.default('screen'),
+  hold: z.boolean().default(false), // randomizers skip layer C
 })
 
 export const MoshScopeSchema = z.enum(['mosh', 'everything', 'daddy'])
@@ -87,7 +88,7 @@ export const AppStateSchema = z.object({
   }),
   locks: z.object({
     mix: z.boolean().default(false),
-    blend: z.boolean().default(false),
+    blend: z.boolean().default(false), // the Master lock: blend mode and output effects
   }),
 })
 
@@ -115,7 +116,7 @@ export const defaultState: AppState = {
   mixOsc: { on: false, rate: 16, shape: 'sine' },
   activeOverlay: 'videoA',
   masterEffects: [],
-  overlay: { kind: 'off', pattern: 'plasma', hue: 280, url: '', opacity: 0.7, blend: 'screen' },
+  overlay: { kind: 'off', pattern: 'plasma', hue: 280, url: '', opacity: 0.7, blend: 'screen', hold: false },
   outputPlaying: true,
   bpm: 120,
   autoMosh: { on: false, bars: 4, scope: 'everything' },

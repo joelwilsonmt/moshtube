@@ -29,59 +29,88 @@ function BeatLight() {
     )
 }
 
+// Top-bar chip: the beat and BPM at a glance; the controls live in its popover
 export function Tempo() {
     const bpm = useStore(appStore, (s) => s.bpm)
     const auto = useStore(appStore, (s) => s.autoMosh)
 
     return (
-        <div className="flex shrink-0 items-center gap-2">
-            <div role="group" aria-label="Tempo" className="flex items-center rounded-md border border-edge bg-rack focus-within:border-signal">
-                <IconButton size="sm" icon={Minus} label="Slower (1 BPM)" onClick={() => setBpm(Math.round(bpm) - 1)} />
-                <label className="flex items-baseline gap-1 px-0.5">
-                    <span className="sr-only">Beats per minute</span>
-                    <input
-                        type="number"
-                        min={40} max={240} step={1}
-                        value={Math.round(bpm)}
-                        onChange={(e) => {
-                            const v = parseFloat(e.target.value)
-                            if (Number.isFinite(v)) setBpm(v)
-                        }}
-                        className="w-9 appearance-none bg-transparent text-right text-[14px] font-bold text-ink [-moz-appearance:textfield] focus-visible:outline-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
-                    <span className="text-[11px] text-dim">BPM</span>
-                </label>
-                <IconButton size="sm" icon={Plus} label="Faster (1 BPM)" onClick={() => setBpm(Math.round(bpm) + 1)} />
+        <>
+            <button
+                type="button"
+                popoverTarget="tempo"
+                title="Tempo and auto-mosh"
+                className="flex h-8 shrink-0 items-center gap-2.5 rounded-md border border-edge bg-rack px-2.5 transition-colors hover:bg-raised"
+            >
+                <BeatLight />
+                <span className="text-[14px] font-bold text-ink">{Math.round(bpm)}</span>
+                <span className="-ml-1.5 text-[11px] text-dim">BPM</span>
+                {auto.on && <span className="rounded-sm bg-signal/15 px-1.5 py-0.5 text-[11px] font-semibold text-signal">Auto</span>}
+            </button>
+            <div
+                id="tempo"
+                popover="auto"
+                className="fixed inset-auto left-3 top-12 m-0 w-80 space-y-4 rounded-lg border border-line bg-panel p-4 text-ink shadow-[0_12px_32px_oklch(0_0_0/0.55)]"
+            >
+                <div className="space-y-2">
+                    <h2 className="label">Tempo</h2>
+                    <div className="flex items-center gap-2">
+                        <div role="group" aria-label="Tempo" className="flex items-center rounded-md border border-edge bg-rack focus-within:border-signal">
+                            <IconButton size="sm" icon={Minus} label="Slower (1 BPM)" onClick={() => setBpm(Math.round(bpm) - 1)} />
+                            <label className="flex items-baseline gap-1 px-0.5">
+                                <input
+                                    type="number"
+                                    aria-label="Tempo in beats per minute"
+                                    min={40} max={240} step={1}
+                                    value={Math.round(bpm)}
+                                    onChange={(e) => {
+                                        const v = parseFloat(e.target.value)
+                                        if (Number.isFinite(v)) setBpm(v)
+                                    }}
+                                    className="w-9 appearance-none bg-transparent text-right text-[14px] font-bold text-ink [-moz-appearance:textfield] focus-visible:outline-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                                <span className="text-[11px] text-dim" aria-hidden="true">BPM</span>
+                            </label>
+                            <IconButton size="sm" icon={Plus} label="Faster (1 BPM)" onClick={() => setBpm(Math.round(bpm) + 1)} />
+                        </div>
+                        <Button onClick={tap} className="h-8 flex-1" title="Tap along to set the tempo (T)">
+                            Tap <Kbd>T</Kbd>
+                        </Button>
+                    </div>
+                    <p className="text-xs text-dim">Oscillation, patterns and auto-mosh all follow this clock.</p>
+                </div>
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                        <h2 className="label">Auto-mosh</h2>
+                        <Toggle pressed={auto.on} onChange={(on) => setAutoMosh({ on })} title="Run a randomizer on the beat (A)">
+                            {auto.on ? 'On' : 'Off'} <Kbd>A</Kbd>
+                        </Toggle>
+                    </div>
+                    <div className="flex gap-2">
+                        <Select
+                            aria-label="Auto-mosh interval"
+                            value={Math.max(auto.bars, minBarsFor(auto.scope))}
+                            onChange={(e) => setAutoMosh({ bars: Number(e.target.value) })}
+                            className="flex-1 text-xs"
+                        >
+                            {AUTO_MOSH_BARS.map((b) => (
+                                <option key={b} value={b} disabled={b < minBarsFor(auto.scope)}>
+                                    Every {b === 1 ? 'bar' : `${b} bars`}
+                                </option>
+                            ))}
+                        </Select>
+                        <Select
+                            aria-label="Auto-mosh randomizer"
+                            value={auto.scope}
+                            onChange={(e) => setAutoMosh({ scope: e.target.value as MoshScope })}
+                            className="flex-1 text-xs"
+                        >
+                            {MoshScopeSchema.options.map((s) => <option key={s} value={s}>{MOSH_SCOPES[s].label}</option>)}
+                        </Select>
+                    </div>
+                </div>
             </div>
-            <Button onClick={tap} className="h-7 px-2.5 text-xs" title="Tap along to set the tempo (T)">
-                Tap <Kbd>T</Kbd>
-            </Button>
-            <BeatLight />
-            <span className="mx-1 h-5 w-px bg-line" />
-            <Toggle pressed={auto.on} onChange={(on) => setAutoMosh({ on })} title="Run a randomizer on the beat (A)">
-                Auto-mosh
-            </Toggle>
-            <Select
-                aria-label="Auto-mosh interval"
-                value={Math.max(auto.bars, minBarsFor(auto.scope))}
-                onChange={(e) => setAutoMosh({ bars: Number(e.target.value), on: true })}
-                className="h-7 w-auto pr-6 text-xs"
-            >
-                {AUTO_MOSH_BARS.map((b) => (
-                    <option key={b} value={b} disabled={b < minBarsFor(auto.scope)}>
-                        Every {b === 1 ? 'bar' : `${b} bars`}
-                    </option>
-                ))}
-            </Select>
-            <Select
-                aria-label="Auto-mosh randomizer"
-                value={auto.scope}
-                onChange={(e) => setAutoMosh({ scope: e.target.value as MoshScope, on: true })}
-                className="h-7 w-auto pr-6 text-xs"
-            >
-                {MoshScopeSchema.options.map((s) => <option key={s} value={s}>{MOSH_SCOPES[s].label}</option>)}
-            </Select>
-        </div>
+        </>
     )
 }
 

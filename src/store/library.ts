@@ -58,7 +58,7 @@ export function savePreset(name: string) {
 }
 
 export function loadPreset(preset: Preset) {
-    checkpoint()
+    checkpoint(`load “${preset.name}”`)
     appStore.setState((s) => ({ ...s, ...deserializeState(new URLSearchParams(preset.query)) }))
     announce(`Loaded “${preset.name}”`)
 }

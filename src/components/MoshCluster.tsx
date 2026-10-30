@@ -17,6 +17,8 @@ export function MoshCluster({ compact = false, className }: { compact?: boolean;
                     type="button"
                     onClick={run}
                     title={`${hint} (${key})`}
+                    aria-label={label}
+                    aria-keyshortcuts={key}
                     className="group flex h-9 items-center gap-2 rounded-md border border-edge bg-raised px-3 text-left text-[13px] font-medium text-ink transition-colors duration-150 hover:bg-line/70 active:bg-line"
                 >
                     <Icon size={15} aria-hidden="true" className="shrink-0 text-dim group-hover:text-ink" />
@@ -29,6 +31,8 @@ export function MoshCluster({ compact = false, className }: { compact?: boolean;
                 type="button"
                 onClick={moshMeDaddy}
                 title="New videos, effects, blend and mix (3)"
+                aria-label="Mosh Me Daddy"
+                aria-keyshortcuts="3"
                 className={cn(
                     'flex items-center gap-2 rounded-md bg-signal px-3 text-left font-semibold text-signal-ink transition-[filter] duration-150 hover:brightness-110 active:brightness-95',
                     compact ? 'h-9 text-[13px]' : 'h-12 text-[15px]'

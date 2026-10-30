@@ -1,4 +1,5 @@
 import { cn } from './core'
+import { sliderCheckpoint } from '../../store/history'
 
 interface DualRangeSliderProps {
   min: number
@@ -28,6 +29,7 @@ export function DualRangeSlider({ min, max, step = 1, value, onChange, labels, f
         min={min} max={max} step={step}
         value={value[0]}
         aria-label={labels[0]}
+        onPointerDown={sliderCheckpoint}
         aria-valuetext={format(value[0])}
         onChange={(e) => onChange([Math.min(parseFloat(e.target.value), value[1] - step), value[1]])}
       />
@@ -37,6 +39,7 @@ export function DualRangeSlider({ min, max, step = 1, value, onChange, labels, f
         min={min} max={max} step={step}
         value={value[1]}
         aria-label={labels[1]}
+        onPointerDown={sliderCheckpoint}
         aria-valuetext={format(value[1])}
         onChange={(e) => onChange([value[0], Math.max(parseFloat(e.target.value), value[0] + step)])}
       />

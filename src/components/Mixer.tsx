@@ -4,7 +4,7 @@ import { ArrowLeftRight, Lock, LockOpen, Pause, Play, Zap } from 'lucide-react'
 import { appStore, setBlendMode, setLock, setMix, setMixOsc, setOverlay, swapLayers, updateVideoState } from '../store/appStore'
 import { PATTERN_LABELS } from '../fx/patterns'
 import { select, uiStore } from '../store/uiStore'
-import { checkpoint } from '../store/history'
+import { checkpoint, sliderCheckpoint } from '../store/history'
 import { BlendModeSchema, OSC_RATES, WaveShapeSchema, type AppState, type Effect, type SourceId } from '../store/schema'
 import { EFFECTS, liveAmount, normalizedAmount } from '../fx/effects'
 import { beatsNow } from '../engine/clock'
@@ -203,7 +203,7 @@ function Crossfader() {
                 <div className="flex items-center gap-1">
                     <button
                         type="button"
-                        onClick={() => { checkpoint(); swapLayers() }}
+                        onClick={() => { checkpoint('layer swap'); swapLayers() }}
                         title="Swap which source is on top"
                         className="inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-xs font-medium text-dim transition-colors hover:bg-raised hover:text-ink"
                     >
@@ -224,6 +224,8 @@ function Crossfader() {
                         value={pos}
                         aria-valuetext={`${Math.round((1 - pos) * 100)}% A, ${Math.round(pos * 100)}% B`}
                         aria-describedby="crossfader-desc"
+                        onPointerDown={sliderCheckpoint}
+                        onKeyDown={(e) => e.key.startsWith('Arrow') && sliderCheckpoint(e)}
                         onChange={(e) => setMix(faderPos(parseFloat(e.target.value), top))}
                     />
                     <div ref={markerRef} className="pointer-events-none absolute top-1/2 hidden h-4 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-signal" aria-hidden="true" />
@@ -236,7 +238,7 @@ function Crossfader() {
                 <Select
                     aria-label="Crossfade oscillation rate"
                     value={mixOsc.rate}
-                    onChange={(e) => setMixOsc({ rate: Number(e.target.value), on: true })}
+                    onChange={(e) => setMixOsc({ rate: Number(e.target.value) })}
                     className="h-7 w-auto min-w-0 flex-1 pr-6 text-xs"
                 >
                     {OSC_RATES.map((r) => <option key={r} value={r}>{rateLabel(r)}</option>)}
@@ -244,7 +246,7 @@ function Crossfader() {
                 <Select
                     aria-label="Crossfade oscillation shape"
                     value={mixOsc.shape}
-                    onChange={(e) => setMixOsc({ shape: e.target.value as AppState['mixOsc']['shape'], on: true })}
+                    onChange={(e) => setMixOsc({ shape: e.target.value as AppState['mixOsc']['shape'] })}
                     className="h-7 w-auto min-w-0 flex-1 pr-6 text-xs capitalize"
                 >
                     {WaveShapeSchema.options.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -273,7 +275,7 @@ function OverlayStrip() {
             <button type="button" onClick={() => select('overlay')} aria-pressed={selected} aria-label={`Edit Layer C (${content})`} className="flex flex-1 flex-col gap-2 text-left">
                 <span className="flex w-full items-center gap-2">
                     <LayerChip layer="overlay" />
-                    <span className="truncate text-[13px] font-medium">{on ? content : 'Layer C'}</span>
+                    <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{on ? content : 'Layer C'}</span>
                 </span>
                 <span className="flex w-full flex-1 gap-2">
                     <span className="relative flex-1 overflow-hidden rounded-sm bg-rack">
@@ -282,17 +284,27 @@ function OverlayStrip() {
                     <Meter layer="overlay" level={(_, state) => (state.overlay.kind === 'off' ? 0 : state.overlay.opacity)} />
                 </span>
             </button>
-            <Toggle
-                pressed={on}
-                onChange={(next) => {
-                    checkpoint()
-                    setOverlay({ kind: next ? (overlay.url ? 'media' : 'pattern') : 'off' })
-                    if (next) select('overlay')
-                }}
-                className="w-full"
-            >
-                {on ? 'On' : 'Off'}
-            </Toggle>
+            <div className="flex items-center gap-1">
+                <Toggle
+                    pressed={on}
+                    aria-label="Layer C"
+                    onChange={(next) => {
+                        checkpoint('Layer C on/off')
+                        setOverlay({ kind: next ? (overlay.url ? 'media' : 'pattern') : 'off' })
+                        if (next) select('overlay')
+                    }}
+                    className="flex-1"
+                >
+                    {on ? 'On' : 'Off'}
+                </Toggle>
+                <IconButton
+                    size="sm"
+                    icon={overlay.hold ? Lock : LockOpen}
+                    label={overlay.hold ? 'Layer C is held: randomizers skip it' : 'Hold Layer C so randomizers skip it'}
+                    active={overlay.hold}
+                    onClick={() => setOverlay({ hold: !overlay.hold })}
+                />
+            </div>
         </section>
     )
 }
@@ -307,13 +319,13 @@ function MasterStrip() {
             <div className="flex items-center gap-2">
                 <LayerChip layer="master" />
                 <span className="flex-1 text-[13px] font-medium">Master</span>
-                <LockToggle lockKey="blend" what="Blend mode" />
+                <LockToggle lockKey="blend" what="Master (blend and output effects)" />
             </div>
             <div className="flex flex-1 gap-2">
                 <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">
                     <div className="space-y-1">
                         <label htmlFor="blend-mode" className="label">Blend</label>
-                        <Select id="blend-mode" value={blendMode} onChange={(e) => { checkpoint(); setBlendMode(e.target.value as AppState['blendMode']) }}>
+                        <Select id="blend-mode" value={blendMode} onChange={(e) => { checkpoint('blend change'); setBlendMode(e.target.value as AppState['blendMode']) }}>
                             {BlendModeSchema.options.map((m) => <option key={m} value={m} title={BLEND_LABELS[m]}>{BLEND_LABELS[m].split(' ')[0]}</option>)}
                         </Select>
                     </div>
@@ -340,7 +352,7 @@ export function Mixer() {
             <SourceStrip id="videoB" />
             <OverlayStrip />
             <MasterStrip />
-            <MoshCluster className="w-[212px] min-[1400px]:w-[300px] shrink-0" />
+            <MoshCluster className="w-[212px] min-[1400px]:w-[300px] shrink-0 max-[1279px]:order-first" />
         </footer>
     )
 }

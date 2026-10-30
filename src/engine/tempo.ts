@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { appStore, setBpm } from '../store/appStore'
 import { announce } from '../store/uiStore'
+import { withoutHistory } from '../store/history'
 import type { MoshScope } from '../store/schema'
 import { moshEverything, moshGlobal, moshMeDaddy } from '../utils/mosh'
 import { beatsNow, resetPhase } from './clock'
@@ -43,7 +44,7 @@ export function useAutoMosh() {
             }
             const every = Math.max(autoMosh.bars, minBarsFor(autoMosh.scope)) * 4
             const bar = Math.floor(beatsNow() / every)
-            if (lastBar !== null && bar !== lastBar) MOSH_SCOPES[autoMosh.scope].run()
+            if (lastBar !== null && bar !== lastBar) withoutHistory(MOSH_SCOPES[autoMosh.scope].run)
             lastBar = bar
         }, 50)
         return () => clearInterval(timer)

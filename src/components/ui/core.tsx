@@ -2,6 +2,7 @@ import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import * as React from 'react'
 import type { LucideIcon } from 'lucide-react'
+import { sliderCheckpoint } from '../../store/history'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -89,8 +90,20 @@ export const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttrib
 )
 Select.displayName = 'Select'
 
+const SLIDER_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End']
+
+// Every slider gesture (drag or key nudges) is one undo step
 export const Range = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-  ({ className, ...props }, ref) => <input ref={ref} type="range" className={cn('range', className)} {...props} />
+  ({ className, ...props }, ref) => (
+    <input
+      ref={ref}
+      type="range"
+      className={cn('range', className)}
+      onPointerDown={sliderCheckpoint}
+      onKeyDown={(e) => SLIDER_KEYS.includes(e.key) && sliderCheckpoint(e)}
+      {...props}
+    />
+  )
 )
 Range.displayName = 'Range'
 
