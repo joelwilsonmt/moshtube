@@ -1,54 +1,45 @@
 # MOSHTUBE
 
-**Moshtube** is an interactive, browser-based video synthesizer and VJ tool that allows users to remix and blend dual YouTube video streams in real-time. Built as a creative coding experiment, it features a custom "mosh" engine that applies dynamic SVG filters and CSS blend modes to simulate glitch art, analog signal degradation, and psychedelic visual effects.
+Moshtube is a browser VJ mixer for YouTube. Pick two videos (or let it pick), blend them, stack glitch effects on top, and hit Mosh until something good happens. The whole mix lives in the URL, so sharing it is copying the link.
 
 ![Moshtube](/screenshot.png)
 
-## Key Features
+## What it does
 
-*   **Dual Video Engine**: Blend two independent YouTube sources (A/B) with precise control over playback, looping, and synchronization.
-*   **Dynamic Shaders**: Apply real-time visual effects including **Glitch**, **VCR**, **Pixelate**, **Wavy**, **Trippy**, and **Scanlines**.
-*   **Live Blending**: Mix video layers using CSS blend modes like **Overlay**, **Difference**, **Exclusion**, and **Multiply**.
-*   **Procedural Chaos**:
-    *   **MOSH**: Randomize shaders and parameters for the current videos.
-    *   **MOSH EVERYTHING**: Randomize shaders, blend modes, mix levels, and oscillation.
-    *   **MOSH ME DADDY**: A "shuffle" mode that loads random videos, sets random loops, and triggers a full system mosh.
-*   **Oscillation**: Automate parameter modulation for shader intensity and master mix levels using sine-wave oscillation.
-*   **Smart Overlay**: Context-aware UI that reveals layer ordering controls only when relevant (e.g., in Overlay mode).
-*   **URL State Sync**: Share your creations with deep-linked URLs that preserve all video IDs, timestamps, and parameters.
-*   **Fullscreen Mode**: Immersive playback with a floating control bar for uninterrupted VJing.
+- **Two YouTube sources (A and B)** with loop regions, a crossfader, and CSS blend modes. Random picks are checked before they load, so dead or embed-blocked videos get skipped.
+- **Effect stacks**: up to four per source plus output effects over the whole mix. 21 effects across color (trippy, duotone, 1-bit, posterize…), distortion (wavy, glitch, RGB split…), texture (scanlines, VCR, grain…) and motion (mirror, zoom, rotate, strobe).
+- **Tempo**: set the BPM or tap it. Oscillation runs in beats and bars with sine, triangle, square, or saw shapes, and auto-mosh can fire a randomizer every few bars.
+- **Randomizers**: **Mosh** rerolls effects, **Mosh Everything** adds blend and mix, and **Mosh Me Daddy** loads new videos and rerolls everything. Undo works on all of them, and you can lock a source, the crossfade, or the blend mode so they leave it alone.
+- **Layer C** sits on top of both sources: a tempo-synced WebGL pattern (plasma, tunnel, grid, smoke) or a transparent video or GIF from a link.
+- **Presets and your own videos**: save mixes by name, and paste a list of YouTube links for shuffle to use. Both are stored in your browser.
+- **Live use**: fullscreen mode, a pop-out output window for a projector, and MIDI controller mapping (in browsers with Web MIDI).
+- **Shared links** open as a viewer: the mix fills the screen, with a **Remix this** button into the mixer. A visit with no link starts on a fresh random mix.
+- **Phones** get the output, a big Mosh Me Daddy button, play/pause, and undo. The full mixer is on desktop.
 
-## Tech Stack
+## Keyboard
 
-*   **Core**: React 18, TypeScript, Vite
-*   **State Management**: Zustand (with Zod schema validation)
-*   **Styling**: Tailwind CSS, Lucide React
-*   **Graphics**: SVG Filters (`feTurbulence`, `feDisplacementMap`), CSS Mix-Blend-Modes
-*   **Runtime**: Bun
+| Key | Action |
+|---|---|
+| `1` `2` `3` | Mosh / Mosh Everything / Mosh Me Daddy |
+| `Space` | Play or pause the output |
+| `T` | Tap tempo |
+| `A` | Auto-mosh on or off |
+| `Z` / `Shift+Z` | Undo / redo |
+| `F` | Fullscreen |
+| `?` | Show shortcuts |
 
-## Getting Started
+## Tech
 
-1.  **Install Dependencies**
-    ```bash
-    bun install
-    ```
+React 19, TypeScript, Vite, Zustand + Zod, Tailwind CSS 3, Lucide icons. Effects are CSS and SVG filters on the YouTube iframes. The videos are cross-origin, so their pixels can't be read and there's no canvas pass over them. Layer C is the app's own WebGL. Client-only, no backend.
 
-2.  **Run Development Server**
-    ```bash
-    bun run dev
-    ```
+## Development
 
-3.  **Build for Production**
-    ```bash
-    bun run build
-    ```
-
-## Controls
-
-*   **M**: Toggle Master Mute (if implemented) / or standard YouTube controls if visible.
-*   **Mosh Button**: Randomizes effects for the selected video.
-*   **Shuffle Icon**: Loads a random video from the curated source list.
-*   **Slider / Input**: Fine-tune loop start/end points and shader intensities.
+```bash
+bun install
+bun run dev            # http://localhost:5180
+bun run build          # typecheck + production build
+bun run check:sources  # verify every random-pool video is still embeddable
+```
 
 ## License
 

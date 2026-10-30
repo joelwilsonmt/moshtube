@@ -1,0 +1,466 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-30T02:20:54+00:00",
+  "title": "Design System: MOSHTUBE",
+  "extensions": {
+    "colorMeta": {
+      "rack": {
+        "role": "neutral",
+        "displayName": "Rack",
+        "canonical": "oklch(0.155 0.006 255)",
+        "cssVar": "--rack (stored as an oklch triplet: oklch(var(--rack)))",
+        "tonalRamp": [
+          "oklch(0.15 0.003 255)",
+          "oklch(0.26 0.005 255)",
+          "oklch(0.38 0.007 255)",
+          "oklch(0.49 0.009 255)",
+          "oklch(0.61 0.010 255)",
+          "oklch(0.72 0.008 255)",
+          "oklch(0.84 0.007 255)",
+          "oklch(0.95 0.005 255)"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel",
+        "canonical": "oklch(0.2 0.007 255)",
+        "cssVar": "--panel (stored as an oklch triplet: oklch(var(--panel)))",
+        "tonalRamp": [
+          "oklch(0.15 0.003 255)",
+          "oklch(0.26 0.005 255)",
+          "oklch(0.38 0.007 255)",
+          "oklch(0.49 0.009 255)",
+          "oklch(0.61 0.010 255)",
+          "oklch(0.72 0.008 255)",
+          "oklch(0.84 0.007 255)",
+          "oklch(0.95 0.005 255)"
+        ]
+      },
+      "raised": {
+        "role": "neutral",
+        "displayName": "Raised",
+        "canonical": "oklch(0.25 0.008 255)",
+        "cssVar": "--raised (stored as an oklch triplet: oklch(var(--raised)))",
+        "tonalRamp": [
+          "oklch(0.15 0.003 255)",
+          "oklch(0.26 0.005 255)",
+          "oklch(0.38 0.007 255)",
+          "oklch(0.49 0.009 255)",
+          "oklch(0.61 0.010 255)",
+          "oklch(0.72 0.008 255)",
+          "oklch(0.84 0.007 255)",
+          "oklch(0.95 0.005 255)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "canonical": "oklch(0.32 0.009 255)",
+        "cssVar": "--line (stored as an oklch triplet: oklch(var(--line)))",
+        "tonalRamp": [
+          "oklch(0.15 0.003 255)",
+          "oklch(0.26 0.005 255)",
+          "oklch(0.38 0.007 255)",
+          "oklch(0.49 0.009 255)",
+          "oklch(0.61 0.010 255)",
+          "oklch(0.72 0.008 255)",
+          "oklch(0.84 0.007 255)",
+          "oklch(0.95 0.005 255)"
+        ]
+      },
+      "edge": {
+        "role": "neutral",
+        "displayName": "Edge",
+        "canonical": "oklch(0.5 0.012 255)",
+        "cssVar": "--edge (stored as an oklch triplet: oklch(var(--edge)))",
+        "tonalRamp": [
+          "oklch(0.15 0.004 255)",
+          "oklch(0.26 0.006 255)",
+          "oklch(0.38 0.008 255)",
+          "oklch(0.49 0.010 255)",
+          "oklch(0.61 0.012 255)",
+          "oklch(0.72 0.010 255)",
+          "oklch(0.84 0.008 255)",
+          "oklch(0.95 0.006 255)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(0.94 0.004 255)",
+        "cssVar": "--ink (stored as an oklch triplet: oklch(var(--ink)))",
+        "tonalRamp": [
+          "oklch(0.15 0.003 255)",
+          "oklch(0.26 0.005 255)",
+          "oklch(0.38 0.007 255)",
+          "oklch(0.49 0.009 255)",
+          "oklch(0.61 0.010 255)",
+          "oklch(0.72 0.008 255)",
+          "oklch(0.84 0.007 255)",
+          "oklch(0.95 0.005 255)"
+        ]
+      },
+      "dim": {
+        "role": "neutral",
+        "displayName": "Dim",
+        "canonical": "oklch(0.74 0.012 255)",
+        "cssVar": "--dim (stored as an oklch triplet: oklch(var(--dim)))",
+        "tonalRamp": [
+          "oklch(0.15 0.004 255)",
+          "oklch(0.26 0.006 255)",
+          "oklch(0.38 0.008 255)",
+          "oklch(0.49 0.010 255)",
+          "oklch(0.61 0.012 255)",
+          "oklch(0.72 0.010 255)",
+          "oklch(0.84 0.008 255)",
+          "oklch(0.95 0.006 255)"
+        ]
+      },
+      "signal": {
+        "role": "primary",
+        "displayName": "Signal Amber",
+        "canonical": "oklch(0.81 0.155 74)",
+        "cssVar": "--signal (stored as an oklch triplet: oklch(var(--signal)))",
+        "tonalRamp": [
+          "oklch(0.15 0.051 74)",
+          "oklch(0.26 0.080 74)",
+          "oklch(0.38 0.107 74)",
+          "oklch(0.49 0.132 74)",
+          "oklch(0.61 0.154 74)",
+          "oklch(0.72 0.129 74)",
+          "oklch(0.84 0.104 74)",
+          "oklch(0.95 0.077 74)"
+        ]
+      },
+      "signal-ink": {
+        "role": "primary",
+        "displayName": "Signal Ink",
+        "canonical": "oklch(0.22 0.04 74)",
+        "cssVar": "--signal-ink (stored as an oklch triplet: oklch(var(--signal-ink)))",
+        "tonalRamp": [
+          "oklch(0.15 0.013 74)",
+          "oklch(0.26 0.021 74)",
+          "oklch(0.38 0.028 74)",
+          "oklch(0.49 0.034 74)",
+          "oklch(0.61 0.040 74)",
+          "oklch(0.72 0.033 74)",
+          "oklch(0.84 0.027 74)",
+          "oklch(0.95 0.020 74)"
+        ]
+      },
+      "layer-a": {
+        "role": "secondary",
+        "displayName": "Layer A Blue",
+        "canonical": "oklch(0.74 0.12 240)",
+        "cssVar": "--layer-a (stored as an oklch triplet: oklch(var(--layer-a)))",
+        "tonalRamp": [
+          "oklch(0.15 0.040 240)",
+          "oklch(0.26 0.062 240)",
+          "oklch(0.38 0.083 240)",
+          "oklch(0.49 0.103 240)",
+          "oklch(0.61 0.119 240)",
+          "oklch(0.72 0.100 240)",
+          "oklch(0.84 0.081 240)",
+          "oklch(0.95 0.060 240)"
+        ]
+      },
+      "layer-b": {
+        "role": "secondary",
+        "displayName": "Layer B Rose",
+        "canonical": "oklch(0.74 0.14 12)",
+        "cssVar": "--layer-b (stored as an oklch triplet: oklch(var(--layer-b)))",
+        "tonalRamp": [
+          "oklch(0.15 0.046 12)",
+          "oklch(0.26 0.073 12)",
+          "oklch(0.38 0.097 12)",
+          "oklch(0.49 0.120 12)",
+          "oklch(0.61 0.139 12)",
+          "oklch(0.72 0.117 12)",
+          "oklch(0.84 0.094 12)",
+          "oklch(0.95 0.069 12)"
+        ]
+      },
+      "layer-c": {
+        "role": "secondary",
+        "displayName": "Layer C Lime",
+        "canonical": "oklch(0.85 0.16 128)",
+        "cssVar": "--layer-c (stored as an oklch triplet: oklch(var(--layer-c)))",
+        "tonalRamp": [
+          "oklch(0.15 0.053 128)",
+          "oklch(0.26 0.083 128)",
+          "oklch(0.38 0.111 128)",
+          "oklch(0.49 0.137 128)",
+          "oklch(0.61 0.158 128)",
+          "oklch(0.72 0.134 128)",
+          "oklch(0.84 0.107 128)",
+          "oklch(0.95 0.079 128)"
+        ]
+      },
+      "layer-m": {
+        "role": "secondary",
+        "displayName": "Master White",
+        "canonical": "oklch(0.94 0.004 255)",
+        "cssVar": "--layer-m (stored as an oklch triplet: oklch(var(--layer-m)))",
+        "tonalRamp": [
+          "oklch(0.15 0.003 255)",
+          "oklch(0.26 0.005 255)",
+          "oklch(0.38 0.007 255)",
+          "oklch(0.49 0.009 255)",
+          "oklch(0.61 0.010 255)",
+          "oklch(0.72 0.008 255)",
+          "oklch(0.84 0.007 255)",
+          "oklch(0.95 0.005 255)"
+        ]
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Fault Red",
+        "canonical": "oklch(0.7 0.18 27)",
+        "cssVar": "--danger (stored as an oklch triplet: oklch(var(--danger)))",
+        "tonalRamp": [
+          "oklch(0.15 0.059 27)",
+          "oklch(0.26 0.093 27)",
+          "oklch(0.38 0.125 27)",
+          "oklch(0.49 0.154 27)",
+          "oklch(0.61 0.178 27)",
+          "oklch(0.72 0.150 27)",
+          "oklch(0.84 0.121 27)",
+          "oklch(0.95 0.089 27)"
+        ]
+      },
+      "stage": {
+        "role": "neutral",
+        "displayName": "Stage Black",
+        "canonical": "#000000",
+        "tonalRamp": [
+          "#000000"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "MOSHTUBE in the top bar and phone header only; uppercase."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Inspector heading naming the selected strip."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Buttons, strip titles, popover text, status line."
+      },
+      "control": {
+        "displayName": "Control",
+        "purpose": "Toggles, compact selects, field labels, strip footers."
+      },
+      "readout": {
+        "displayName": "Readout",
+        "purpose": "BPM value; tabular numerals."
+      },
+      "label": {
+        "displayName": "Silkscreen Label",
+        "purpose": "Uppercase section and control-group names in dim."
+      },
+      "chip": {
+        "displayName": "Chip Letter",
+        "purpose": "Single letter inside a layer chip."
+      }
+    },
+    "shadows": [
+      {
+        "name": "popover-lift",
+        "value": "0 12px 32px oklch(0 0 0 / 0.55)",
+        "purpose": "Native popovers (presets, MIDI, shortcuts)."
+      },
+      {
+        "name": "overlay-pill",
+        "value": "0 8px 24px oklch(0 0 0 / 0.5)",
+        "purpose": "Fullscreen control pill over the stage, with panel at 90% and backdrop blur."
+      },
+      {
+        "name": "cap-contact",
+        "value": "0 1px 2px oklch(0 0 0 / 0.5)",
+        "purpose": "Slider thumbs only."
+      }
+    ],
+    "motion": [
+      {
+        "name": "state-colour",
+        "value": "150ms",
+        "purpose": "Colour/background/filter transitions on buttons, toggles, icon buttons."
+      },
+      {
+        "name": "status-fade",
+        "value": "300ms",
+        "purpose": "Status line fade and fullscreen pill hide (with 12px drop)."
+      },
+      {
+        "name": "status-hold",
+        "value": "4000ms",
+        "purpose": "How long the status line stays before fading."
+      },
+      {
+        "name": "live-frame",
+        "value": "requestAnimationFrame",
+        "purpose": "Meters, beat light and live-value markers update per frame without re-render."
+      }
+    ],
+    "focus": {
+      "buttons": "outline: 2px solid oklch(var(--signal)); outline-offset: 2px",
+      "fields": "border-color: oklch(var(--signal)); outline: none"
+    },
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "max-width: 767px",
+        "purpose": "Separate phone view: stage, Mosh Me Daddy, play, undo."
+      },
+      {
+        "name": "wide",
+        "value": "1400px",
+        "purpose": "Mixer strips widen; mosh cluster shows hint text."
+      }
+    ],
+    "layout": {
+      "topBar": "44px",
+      "inspector": "320px",
+      "minHeight": "600px"
+    }
+  },
+  "components": [
+    {
+      "name": "Default Button",
+      "kind": "button",
+      "refersTo": "button-default",
+      "description": "Standard rack button: raised fill, edge border.",
+      "html": "<button class=\"ds-btn\">Tap <kbd class=\"ds-kbd\">T</kbd></button>",
+      "css": ".ds-btn { display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:6px; border:1px solid oklch(var(--edge)); background:oklch(var(--raised)); color:oklch(var(--ink)); font:500 13px/1 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-variant-numeric:tabular-nums; cursor:pointer; transition:background-color 150ms, color 150ms; } .ds-btn:hover { background:oklch(var(--line) / 0.7); } .ds-btn:active { background:oklch(var(--line)); } .ds-btn:focus-visible { outline:2px solid oklch(var(--signal)); outline-offset:2px; } .ds-kbd { display:inline-flex; align-items:center; justify-content:center; height:18px; min-width:18px; padding:0 4px; border-radius:4px; border:1px solid color-mix(in oklch, currentColor 30%, transparent); font:600 10px/1 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; opacity:.8; }"
+    },
+    {
+      "name": "Mosh Me Daddy",
+      "kind": "button",
+      "refersTo": "button-mosh-me-daddy",
+      "description": "The one filled amber primary: new videos, effects, blend and mix.",
+      "html": "<button class=\"ds-mmd\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z\"/></svg><span>Mosh Me Daddy</span><span class=\"ds-mmd-hint\">New videos + all</span><kbd class=\"ds-mmd-kbd\">3</kbd></button>",
+      "css": ".ds-mmd { display:flex; align-items:center; gap:8px; width:300px; height:48px; padding:0 12px; border:0; border-radius:6px; background:oklch(var(--signal)); color:oklch(var(--signal-ink)); font:600 15px/1 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; cursor:pointer; transition:filter 150ms; } .ds-mmd:hover { filter:brightness(1.1); } .ds-mmd:active { filter:brightness(.95); } .ds-mmd:focus-visible { outline:2px solid oklch(var(--signal)); outline-offset:2px; } .ds-mmd-hint { margin-left:auto; font-size:12px; font-weight:500; opacity:.8; } .ds-mmd-kbd { display:inline-flex; align-items:center; justify-content:center; height:18px; min-width:18px; padding:0 4px; border-radius:4px; border:1px solid color-mix(in oklch, currentColor 30%, transparent); font:600 10px/1 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; opacity:.8; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Top-bar actions: no fill until hover.",
+      "html": "<button class=\"ds-ghost\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M9 17H7A5 5 0 0 1 7 7h2\"/><path d=\"M15 7h2a5 5 0 1 1 0 10h-2\"/><line x1=\"8\" x2=\"16\" y1=\"12\" y2=\"12\"/></svg>Copy link</button>",
+      "css": ".ds-ghost { display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 12px; border:0; border-radius:6px; background:transparent; color:oklch(var(--dim)); font:500 13px/1 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; cursor:pointer; transition:background-color 150ms, color 150ms; } .ds-ghost:hover { background:oklch(var(--raised)); color:oklch(var(--ink)); } .ds-ghost:active { background:oklch(var(--line)); } .ds-ghost:focus-visible { outline:2px solid oklch(var(--signal)); outline-offset:2px; }"
+    },
+    {
+      "name": "Toggle",
+      "kind": "button",
+      "refersTo": "toggle",
+      "description": "Pressable switch; on state lights amber.",
+      "html": "<div class=\"ds-row\"><button class=\"ds-toggle\" aria-pressed=\"true\">Oscillate</button><button class=\"ds-toggle\" aria-pressed=\"false\">Auto-mosh</button></div>",
+      "css": ".ds-row { display:flex; gap:6px; } .ds-toggle { height:28px; padding:0 8px; border-radius:6px; border:1px solid oklch(var(--edge)); background:transparent; color:oklch(var(--dim)); font:500 12px/1 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; cursor:pointer; transition:background-color 150ms, color 150ms, border-color 150ms; } .ds-toggle:hover { background:oklch(var(--raised)); color:oklch(var(--ink)); } .ds-toggle[aria-pressed=true] { border-color:oklch(var(--signal) / 0.5); background:oklch(var(--signal) / 0.15); color:oklch(var(--signal)); } .ds-toggle:focus-visible { outline:2px solid oklch(var(--signal)); outline-offset:2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Rack-well field; focus turns the border amber.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">YouTube link or ID</span><input class=\"ds-input\" value=\"-Pail6FITXc\"></label>",
+      "css": ".ds-field { display:flex; flex-direction:column; gap:6px; width:280px; } .ds-field-label { font:500 12px/1.2 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color:oklch(var(--dim)); } .ds-input { height:32px; padding:0 10px; border-radius:6px; border:1px solid oklch(var(--edge)); background:oklch(var(--rack)); color:oklch(var(--ink)); font:400 13px/1 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; caret-color:oklch(var(--signal)); transition:border-color 150ms; } .ds-input:focus-visible { outline:none; border-color:oklch(var(--signal)); } .ds-input[aria-invalid=true] { border-color:oklch(var(--danger)); }"
+    },
+    {
+      "name": "Layer Chips",
+      "kind": "chip",
+      "refersTo": "layer-chip",
+      "description": "Channel identity: letter on layer colour.",
+      "html": "<div class=\"ds-chips\"><span class=\"ds-chip\" style=\"background:oklch(var(--layer-a))\">A</span><span class=\"ds-chip\" style=\"background:oklch(var(--layer-b))\">B</span><span class=\"ds-chip\" style=\"background:oklch(var(--layer-c))\">C</span><span class=\"ds-chip\" style=\"background:oklch(var(--layer-m))\">M</span></div>",
+      "css": ".ds-chips { display:flex; gap:8px; } .ds-chip { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:2px; color:oklch(var(--rack)); font:700 12px/1 'Saira Semi Condensed', system-ui, sans-serif; }"
+    },
+    {
+      "name": "Top Bar",
+      "kind": "nav",
+      "refersTo": "top-bar",
+      "description": "44px panel face: wordmark, tempo, beat light, actions.",
+      "html": "<header class=\"ds-bar\"><span class=\"ds-wordmark\">Moshtube</span><span class=\"ds-bpm\"><b>124</b> BPM</span><span class=\"ds-beat\"><i class=\"on\"></i><i></i><i></i><i></i></span><span class=\"ds-status\">Link copied.</span><span class=\"ds-sep\"></span><button class=\"ds-bar-btn\">Presets</button><button class=\"ds-bar-btn\">Copy link</button></header>",
+      "css": ".ds-bar { display:flex; align-items:center; gap:16px; height:44px; padding:0 12px; background:oklch(var(--panel)); border-bottom:1px solid oklch(var(--line)); color:oklch(var(--ink)); font-family:system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-variant-numeric:tabular-nums; } .ds-wordmark { font:700 17px/1 'Saira Semi Condensed', system-ui, sans-serif; letter-spacing:.06em; text-transform:uppercase; } .ds-bpm { display:inline-flex; align-items:baseline; gap:4px; height:28px; padding:0 8px; align-items:center; border:1px solid oklch(var(--edge)); border-radius:6px; background:oklch(var(--rack)); font-size:11px; color:oklch(var(--dim)); } .ds-bpm b { font-size:14px; font-weight:700; color:oklch(var(--ink)); } .ds-beat { display:flex; gap:4px; } .ds-beat i { width:10px; height:10px; border-radius:50%; background:oklch(var(--line)); } .ds-beat i.on { background:oklch(var(--signal)); } .ds-status { flex:1; font-size:13px; color:oklch(var(--dim)); } .ds-sep { width:1px; height:20px; background:oklch(var(--line)); } .ds-bar-btn { height:32px; padding:0 12px; border:0; border-radius:6px; background:transparent; color:oklch(var(--dim)); font:500 13px/1 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; cursor:pointer; transition:background-color 150ms, color 150ms; } .ds-bar-btn:hover { background:oklch(var(--raised)); color:oklch(var(--ink)); } .ds-bar-btn:focus-visible { outline:2px solid oklch(var(--signal)); outline-offset:2px; }"
+    },
+    {
+      "name": "Channel Strip with LED Meter",
+      "kind": "custom",
+      "refersTo": "channel-strip-selected",
+      "description": "Signature: selected strip with layer ring and 8-segment meter, amber peak.",
+      "html": "<section class=\"ds-strip\"><div class=\"ds-strip-head\"><span class=\"ds-chip-a\">A</span><span>Source A</span></div><div class=\"ds-strip-body\"><div class=\"ds-thumb\"></div><div class=\"ds-meter\"><i class=\"peak\"></i><i></i><i></i><i class=\"lit\"></i><i class=\"lit\"></i><i class=\"lit\"></i><i class=\"lit\"></i><i class=\"lit\"></i></div></div><div class=\"ds-strip-foot\">RGB split + Wavy</div></section>",
+      "css": ".ds-strip { display:flex; flex-direction:column; gap:8px; width:216px; padding:8px; border-radius:6px; background:oklch(var(--raised)); box-shadow:inset 0 0 0 1px oklch(var(--layer-a) / 0.6); color:oklch(var(--ink)); font:500 13px/1.2 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; } .ds-strip-head { display:flex; align-items:center; gap:8px; } .ds-chip-a { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:2px; background:oklch(var(--layer-a)); color:oklch(var(--rack)); font:700 12px/1 'Saira Semi Condensed', system-ui, sans-serif; } .ds-strip-body { display:flex; gap:8px; } .ds-thumb { flex:1; aspect-ratio:16/9; border-radius:2px; background:oklch(var(--rack)); } .ds-meter { display:flex; flex-direction:column; gap:3px; width:6px; } .ds-meter i { flex:1; border-radius:1px; background:oklch(var(--layer-a)); opacity:.14; } .ds-meter i.peak { background:oklch(var(--signal)); } .ds-meter i.lit { opacity:1; } .ds-strip-foot { font-size:12px; color:oklch(var(--dim)); text-align:right; }"
+    },
+    {
+      "name": "Section Label",
+      "kind": "custom",
+      "refersTo": "label",
+      "description": "Silkscreen label heading an inspector section or control group.",
+      "html": "<div class=\"ds-section\"><h3 class=\"ds-label\">Effects</h3><p class=\"ds-section-body\">RGB split</p></div>",
+      "css": ".ds-section { width:280px; padding:14px 16px; background:oklch(var(--panel)); border-top:1px solid oklch(var(--line)); } .ds-label { margin:0 0 12px; font:600 11px/1 'Saira Semi Condensed', system-ui, sans-serif; letter-spacing:.08em; text-transform:uppercase; color:oklch(var(--dim)); } .ds-section-body { margin:0; font:500 13px/1.2 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color:oklch(var(--ink)); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Graphite Rack",
+    "overview": "MOSHTUBE is a piece of VJ gear rendered in a browser tab: a matte graphite chassis with the stage cut into it, a row of channel strips along the bottom edge, and a single amber lamp that lights only when something is live, active, or the one thing to press. The output is the art. Everything around it is dark, flat, and quiet so the stage carries all the colour and motion on screen.\n\nDensity is that of hardware, not a dashboard: controls are compact (28 to 32px), grouped into strips and sections separated by hairlines rather than floated on cards. Labels are small uppercase condensed caps, like silkscreen printed on a faceplate; readouts are tabular numerals. Modulation is made visible the way a mixer shows it: per-strip LED meters, a four-step beat light, and amber markers that ride the live value of any oscillating slider.\n\nThe system refuses two things the build visibly avoids: the generic dark admin dashboard (sidebars of cards around a small video) and the near-black-plus-neon-glow costume. Nothing glows. Colour beyond graphite is either the amber signal or a layer identity colour, and each has a fixed job.",
+    "keyCharacteristics": [
+      "Matte graphite in three surface steps (rack, panel, raised), separated by hairline dividers.",
+      "One amber signal colour for live, active, and primary; nothing else is amber.",
+      "Four layer identity colours (A blue, B rose, C lime, Master white) used as labels on the hardware, never as decoration.",
+      "Silkscreen labels in Saira Semi Condensed; everything else in the system UI sans with tabular numerals.",
+      "Modulation shown live: LED meters, beat light, amber value markers.",
+      "Flat at rest; soft shadow only on things that float above the rack."
+    ],
+    "rules": [
+      {
+        "name": "The One Lamp Rule",
+        "body": "Amber means live, active, or primary, and nothing else. If an element is amber it is either moving with the music, switched on, or the single action to press on that surface.",
+        "section": "colors"
+      },
+      {
+        "name": "The Labels-Not-Paint Rule",
+        "body": "Layer colours identify a channel; they never fill panels, buttons, or backgrounds. Chips, meters, and selection rings are the whole list.",
+        "section": "colors"
+      },
+      {
+        "name": "The Edge-Versus-Line Rule",
+        "body": "Anything you can operate gets an edge-coloured boundary (at least 3:1); a line-coloured hairline only divides and is never the sole outline of a control.",
+        "section": "colors"
+      },
+      {
+        "name": "The Silkscreen Rule",
+        "body": "Saira Semi Condensed is for labels printed on the gear (section and control-group names, the wordmark, layer letters). Running text, values, and buttons stay in the system sans.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Every number on screen uses tabular figures so readouts don't jitter while values move.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Rack Rule",
+        "body": "Anything docked into the rack (bars, strips, sections, buttons) has no shadow. Only floating layers get one, and it is a soft dark drop, never a coloured glow.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep amber to live modulation, change pulses, focus, and the one primary action per surface; pressed toggles and active icon buttons stay neutral.",
+      "Do give every operable control an edge-coloured boundary or a raised fill; reserve line for dividers.",
+      "Do lead every channel with its layer chip and carry its layer colour into its meter and selection ring.",
+      "Do set section and control-group names as 11px uppercase Saira labels in dim, and everything else in the system sans.",
+      "Do show modulation live: a meter, a beat lamp, or an amber marker on the value that moves.",
+      "Do keep transitions to 150ms colour changes and 300ms fades for status and the overlay pill; no page-load choreography.",
+      "Do keep the stage the largest region and leave it unobstructed outside fullscreen."
+    ],
+    "donts": [
+      "Don't use glows, neon edge light, or coloured shadows; shadows are soft dark drops on floating layers only.",
+      "Don't use soft decorative gradients on chrome; hard-stop splits that draw a physical detail (the fader cap centre line) are fine, and the stage output is exempt.",
+      "Don't put layer colours on panels, button fills, text blocks, or backgrounds.",
+      "Don't add a second filled amber button to the main mixer or phone view; Mosh Me Daddy is the primary.",
+      "Don't wrap controls in floating cards with shadows around a small video; strips sit flush in the rack.",
+      "Don't use line (1.43:1) as the only boundary of an interactive control."
+    ]
+  }
+}
