@@ -23,7 +23,7 @@ function BeatLight() {
     return (
         <div ref={ref} className="flex items-center gap-1" aria-hidden="true">
             {[0, 1, 2, 3].map((i) => (
-                <span key={i} className="h-2 w-2 rounded-full bg-line data-[on=true]:bg-signal" />
+                <span key={i} className="h-2.5 w-2.5 rounded-full bg-line data-[on=true]:bg-signal" />
             ))}
         </div>
     )
@@ -47,7 +47,7 @@ export function Tempo() {
                             const v = parseFloat(e.target.value)
                             if (Number.isFinite(v)) setBpm(v)
                         }}
-                        className="w-9 appearance-none bg-transparent text-right text-[13px] font-semibold text-ink [-moz-appearance:textfield] focus-visible:outline-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className="w-9 appearance-none bg-transparent text-right text-[14px] font-bold text-ink [-moz-appearance:textfield] focus-visible:outline-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     <span className="text-[11px] text-dim">BPM</span>
                 </label>

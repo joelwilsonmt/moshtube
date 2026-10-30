@@ -104,13 +104,13 @@ function MobileView() {
                 <h1><Wordmark /></h1>
                 <IconButton icon={Link2} label="Copy link to this mix" onClick={copyLink} />
             </header>
-            <main className="relative aspect-video w-full bg-black">
+            <main className="relative min-h-[40dvh] w-full flex-1 bg-black">
                 <Stage />
             </main>
-            <div className="flex flex-1 flex-col gap-3 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <div className="flex flex-col gap-3 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
                 <StatusLine className="min-h-5" />
                 <p className="text-[13px] text-dim">Full controls, effects and the mixer are on desktop.</p>
-                <Button variant="primary" onClick={moshMeDaddy} className="mt-auto h-14 text-base">
+                <Button variant="primary" onClick={moshMeDaddy} className="h-14 text-base">
                     <Sparkles size={18} aria-hidden="true" />
                     Mosh Me Daddy
                 </Button>

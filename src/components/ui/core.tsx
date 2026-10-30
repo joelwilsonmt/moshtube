@@ -106,7 +106,7 @@ export function Field({ label, value, className, children }: {
     <div className={cn('space-y-1.5', className)}>
       <div className="flex items-baseline justify-between gap-2">
         <label htmlFor={id} className="text-xs font-medium text-dim">{label}</label>
-        {value !== undefined && <span className="text-xs text-dim">{value}</span>}
+        {value !== undefined && <span className="text-xs font-semibold text-ink">{value}</span>}
       </div>
       {children(id)}
     </div>

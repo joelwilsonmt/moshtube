@@ -1,9 +1,12 @@
+import { useRef } from 'react'
 import { useStore } from 'zustand'
 import { ArrowDown, ArrowUp, TriangleAlert, X } from 'lucide-react'
 import { appStore, getEffects, setEffects, updateEffect, type FxTarget } from '../store/appStore'
 import { checkpoint } from '../store/history'
 import { OSC_RATES, WaveShapeSchema, type Effect, type EffectType } from '../store/schema'
-import { createEffect, EFFECT_GROUPS, EFFECTS } from '../fx/effects'
+import { createEffect, EFFECT_GROUPS, EFFECTS, liveAmount, normalizedAmount } from '../fx/effects'
+import { beatsNow } from '../engine/clock'
+import { useFrame } from '../hooks/useLive'
 import { rateLabel } from './Mixer'
 import { Field, IconButton, Range, Select, Toggle } from './ui/core'
 
@@ -26,6 +29,19 @@ const formatValue = (effect: Effect) => {
     const param = EFFECTS[effect.type].param!
     const digits = param.step < 1 ? (param.step < 0.1 ? 2 : 1) : 0
     return `${effect.amount.toFixed(digits)}${param.unit ?? ''}`
+}
+
+// Amber tick riding the live value while an effect oscillates (same move as the crossfader)
+function LiveMarker({ target, effectId }: { target: FxTarget; effectId: string }) {
+    const ref = useRef<HTMLDivElement>(null)
+    useFrame(() => {
+        const el = ref.current
+        const effect = getEffects(appStore.getState(), target).find((e) => e.id === effectId)
+        if (!el || !effect) return
+        el.style.display = effect.osc.on ? 'block' : 'none'
+        if (effect.osc.on) el.style.left = `calc(7px + (100% - 14px) * ${normalizedAmount(effect, liveAmount(effect, beatsNow()))})`
+    })
+    return <div ref={ref} className="pointer-events-none absolute top-1/2 hidden h-3.5 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-signal" aria-hidden="true" />
 }
 
 function EffectRow({ target, effect, index, count }: { target: FxTarget; effect: Effect; index: number; count: number }) {
@@ -65,12 +81,15 @@ function EffectRow({ target, effect, index, count }: { target: FxTarget; effect:
             {def.param && (
                 <Field label={effect.osc.on ? `${def.param.label} peak` : def.param.label} value={formatValue(effect)} className="pl-5">
                     {(id) => (
-                        <Range
-                            id={id}
-                            min={def.param!.min} max={def.param!.max} step={def.param!.step}
-                            value={effect.amount}
-                            onChange={(e) => updateEffect(target, effect.id, { amount: parseFloat(e.target.value) })}
-                        />
+                        <div className="relative">
+                            <Range
+                                id={id}
+                                min={def.param!.min} max={def.param!.max} step={def.param!.step}
+                                value={effect.amount}
+                                onChange={(e) => updateEffect(target, effect.id, { amount: parseFloat(e.target.value) })}
+                            />
+                            <LiveMarker target={target} effectId={effect.id} />
+                        </div>
                     )}
                 </Field>
             )}

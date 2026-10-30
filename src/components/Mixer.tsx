@@ -14,6 +14,7 @@ import { moshVideo } from '../utils/mosh'
 import { liveMix } from './Stage'
 import { cn, IconButton, Select, Toggle } from './ui/core'
 import { MoshCluster } from './MoshCluster'
+import { MediaView, PatternCanvas } from './OverlayLayer'
 
 export const LAYER = {
     videoA: { letter: 'A', name: 'Source A', bg: 'bg-layer-a', text: 'text-layer-a', token: '--layer-a' },
@@ -46,6 +47,11 @@ export function LayerChip({ layer, className }: { layer: keyof typeof LAYER; cla
         </span>
     )
 }
+
+const RING = { videoA: 'ring-layer-a/60', videoB: 'ring-layer-b/60', overlay: 'ring-layer-c/60', master: 'ring-layer-m/50' } as const
+
+export const stripClass = (selected: boolean, layer: keyof typeof RING, width: string) =>
+    cn('flex shrink-0 flex-col gap-2 rounded-md p-2 transition-colors', width, selected ? `bg-raised ring-1 ring-inset ${RING[layer]}` : 'bg-rack/60')
 
 const SEGMENTS = 8
 
@@ -98,7 +104,7 @@ function SourceStrip({ id }: { id: SourceId }) {
     const { name } = LAYER[id]
 
     return (
-        <section aria-label={name} className={cn('flex w-[196px] min-[1400px]:w-[216px] shrink-0 flex-col gap-2 rounded-md p-2 transition-colors', selected ? 'bg-raised' : 'bg-rack/60')}>
+        <section aria-label={name} className={stripClass(selected, id, 'w-[196px] min-[1400px]:w-[216px]')}>
             <button
                 type="button"
                 onClick={() => select(id)}
@@ -153,13 +159,17 @@ function LockToggle({ lockKey, what }: { lockKey: keyof AppState['locks']; what:
     )
 }
 
+// The fader always runs A (left) to B (right), matching the strips beside it.
+// Underneath, the mix is the top layer's amount, so the position flips with layer order.
+const faderPos = (mix: number, top: SourceId) => (top === 'videoB' ? mix : 1 - mix)
+
 function Crossfader() {
     const mix = useStore(appStore, (s) => s.mix)
     const mixOsc = useStore(appStore, (s) => s.mixOsc)
     const top = useStore(appStore, (s) => s.activeOverlay)
     const blendMode = useStore(appStore, (s) => s.blendMode)
     const markerRef = useRef<HTMLDivElement>(null)
-    const bottom: SourceId = top === 'videoA' ? 'videoB' : 'videoA'
+    const pos = faderPos(mix, top)
 
     // Amber marker rides the live value while the mix oscillates
     useFrame(() => {
@@ -167,15 +177,14 @@ function Crossfader() {
         if (!el) return
         const state = appStore.getState()
         el.style.display = state.mixOsc.on ? 'block' : 'none'
-        if (state.mixOsc.on) el.style.left = `calc(9px + (100% - 18px) * ${liveMix(state, beatsNow())})`
+        if (state.mixOsc.on) el.style.left = `calc(9px + (100% - 18px) * ${faderPos(liveMix(state, beatsNow()), state.activeOverlay)})`
     })
 
     const topL = LAYER[top].letter
-    const bottomL = LAYER[bottom].letter
-    const rightLabel = blendMode === 'normal' ? topL : `${bottomL}+${topL}`
+    const blendName = BLEND_LABELS[blendMode].split(' ')[0]
     const description = blendMode === 'normal'
-        ? `Crossfade from ${bottomL} to ${topL}`
-        : `How much ${topL} blends over ${bottomL} (${BLEND_LABELS[blendMode].split(' ')[0]})`
+        ? 'Crossfade between Source A and Source B'
+        : `Source ${topL} is on top in ${blendName} mode: toward ${topL} blends it in fully, the other end shows the other source alone`
 
     return (
         <section aria-label="Crossfader" className="flex min-w-[272px] min-[1400px]:min-w-[300px] flex-1 flex-col justify-between gap-2 rounded-md bg-rack/60 px-3 py-2">
@@ -189,31 +198,27 @@ function Crossfader() {
                         className="inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-xs font-medium text-dim transition-colors hover:bg-raised hover:text-ink"
                     >
                         <ArrowLeftRight size={13} aria-hidden="true" />
-                        {topL} on top
+                        {topL} on top{blendMode !== 'normal' && ` · ${blendName}`}
                     </button>
-                    <span className="w-9 text-right text-xs text-dim">{Math.round(mix * 100)}%</span>
                     <LockToggle lockKey="mix" what="Crossfade" />
                 </div>
             </div>
             <div className="flex items-center gap-2">
-                <LayerChip layer={bottom} />
+                <LayerChip layer="videoA" />
                 <div className="relative flex-1">
                     <input
                         id="crossfader"
                         type="range"
                         className="range range-fader"
                         min={0} max={1} step={0.01}
-                        value={mix}
-                        aria-valuetext={`${Math.round(mix * 100)}% ${topL}`}
+                        value={pos}
+                        aria-valuetext={`${Math.round((1 - pos) * 100)}% A, ${Math.round(pos * 100)}% B`}
                         aria-describedby="crossfader-desc"
-                        onChange={(e) => setMix(parseFloat(e.target.value))}
-                        style={{ '--fader-l': `var(${LAYER[bottom].token})`, '--fader-r': `var(${LAYER[top].token})` } as React.CSSProperties}
+                        onChange={(e) => setMix(faderPos(parseFloat(e.target.value), top))}
                     />
                     <div ref={markerRef} className="pointer-events-none absolute top-1/2 hidden h-4 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-signal" aria-hidden="true" />
                 </div>
-                <span className={cn('inline-flex h-5 shrink-0 items-center justify-center rounded-sm px-1 font-label text-[12px] font-bold text-rack', LAYER[top].bg)} aria-hidden="true">
-                    {rightLabel}
-                </span>
+                <LayerChip layer="videoB" />
             </div>
             <p id="crossfader-desc" className="sr-only">{description}</p>
             <div className="flex items-center gap-1.5">
@@ -239,6 +244,14 @@ function Crossfader() {
     )
 }
 
+// Strip-scale preview of layer C's actual content
+function OverlayPreview() {
+    const overlay = useStore(appStore, (s) => s.overlay)
+    if (overlay.kind === 'pattern') return <PatternCanvas pattern={overlay.pattern} reportErrors={false} />
+    if (overlay.kind === 'media' && overlay.url) return <MediaView url={overlay.url} reportErrors={false} />
+    return <span className="flex h-full items-center justify-center text-xs text-dim">Off</span>
+}
+
 function OverlayStrip() {
     const overlay = useStore(appStore, (s) => s.overlay)
     const selected = useStore(uiStore, (s) => s.selected === 'overlay')
@@ -246,15 +259,15 @@ function OverlayStrip() {
     const content = overlay.kind === 'pattern' ? PATTERN_LABELS[overlay.pattern] : overlay.kind === 'media' ? 'Video overlay' : 'Off'
 
     return (
-        <section aria-label="Layer C" className={cn('flex w-[132px] shrink-0 flex-col gap-2 rounded-md p-2 transition-colors', selected ? 'bg-raised' : 'bg-rack/60')}>
-            <button type="button" onClick={() => select('overlay')} aria-pressed={selected} aria-label="Edit Layer C" className="flex flex-1 flex-col gap-2 text-left">
+        <section aria-label="Layer C" className={stripClass(selected, 'overlay', 'w-[132px]')}>
+            <button type="button" onClick={() => select('overlay')} aria-pressed={selected} aria-label={`Edit Layer C (${content})`} className="flex flex-1 flex-col gap-2 text-left">
                 <span className="flex w-full items-center gap-2">
                     <LayerChip layer="overlay" />
-                    <span className="text-[13px] font-medium">Layer C</span>
+                    <span className="truncate text-[13px] font-medium">{on ? content : 'Layer C'}</span>
                 </span>
                 <span className="flex w-full flex-1 gap-2">
-                    <span className={cn('flex flex-1 items-center justify-center rounded-sm bg-rack px-1 text-center text-xs', on ? 'text-ink' : 'text-dim')}>
-                        {content}
+                    <span className="relative flex-1 overflow-hidden rounded-sm bg-rack">
+                        <span className="absolute inset-0"><OverlayPreview /></span>
                     </span>
                     <Meter layer="overlay" level={(_, state) => (state.overlay.kind === 'off' ? 0 : state.overlay.opacity)} />
                 </span>
@@ -280,28 +293,30 @@ function MasterStrip() {
     const selected = useStore(uiStore, (s) => s.selected === 'master')
 
     return (
-        <section aria-label="Master" className={cn('flex w-[184px] min-[1400px]:w-[200px] shrink-0 flex-col gap-2 rounded-md p-2 transition-colors', selected ? 'bg-raised' : 'bg-rack/60')}>
+        <section aria-label="Master" className={stripClass(selected, 'master', 'w-[184px] min-[1400px]:w-[200px]')}>
             <div className="flex items-center gap-2">
                 <LayerChip layer="master" />
                 <span className="flex-1 text-[13px] font-medium">Master</span>
                 <LockToggle lockKey="blend" what="Blend mode" />
             </div>
-            <div className="space-y-1">
-                <label htmlFor="blend-mode" className="label">Blend</label>
-                <Select id="blend-mode" value={blendMode} onChange={(e) => { checkpoint(); setBlendMode(e.target.value as AppState['blendMode']) }}>
-                    {BlendModeSchema.options.map((m) => <option key={m} value={m}>{BLEND_LABELS[m]}</option>)}
-                </Select>
-            </div>
-            <div className="flex flex-1 items-end gap-2">
-                <button
-                    type="button"
-                    onClick={() => select('master')}
-                    aria-pressed={selected}
-                    className="flex h-8 min-w-0 flex-1 items-center rounded-md border border-edge bg-raised px-2.5 text-left text-xs font-medium text-ink transition-colors hover:bg-line/70"
-                >
-                    <span className="truncate">{effects.length ? `Output: ${effects.map((e) => EFFECTS[e.type].label).join(' + ')}` : 'Output effects'}</span>
-                </button>
-                <div className="h-7"><Meter layer="master" level={(beats, state) => stackLevel(state.masterEffects, beats)} /></div>
+            <div className="flex flex-1 gap-2">
+                <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">
+                    <div className="space-y-1">
+                        <label htmlFor="blend-mode" className="label">Blend</label>
+                        <Select id="blend-mode" value={blendMode} onChange={(e) => { checkpoint(); setBlendMode(e.target.value as AppState['blendMode']) }}>
+                            {BlendModeSchema.options.map((m) => <option key={m} value={m}>{BLEND_LABELS[m]}</option>)}
+                        </Select>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => select('master')}
+                        aria-pressed={selected}
+                        className="flex h-8 min-w-0 items-center rounded-md border border-edge bg-raised px-2.5 text-left text-xs font-medium text-ink transition-colors hover:bg-line/70"
+                    >
+                        <span className="truncate">{effects.length ? `Output: ${effects.map((e) => EFFECTS[e.type].label).join(' + ')}` : 'Output effects'}</span>
+                    </button>
+                </div>
+                <Meter layer="master" level={(beats, state) => stackLevel(state.masterEffects, beats)} />
             </div>
         </section>
     )
@@ -315,7 +330,7 @@ export function Mixer() {
             <SourceStrip id="videoB" />
             <OverlayStrip />
             <MasterStrip />
-            <MoshCluster className="w-[212px] min-[1400px]:w-[300px] shrink-0 justify-center" />
+            <MoshCluster className="w-[212px] min-[1400px]:w-[300px] shrink-0" />
         </footer>
     )
 }

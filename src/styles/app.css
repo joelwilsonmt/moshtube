@@ -103,12 +103,12 @@
   .range-fader::-webkit-slider-runnable-track {
     height: 6px;
     border-radius: 3px;
-    background: linear-gradient(to right, oklch(var(--fader-l, var(--layer-a)) / 0.75), oklch(var(--edge)) 30% 70%, oklch(var(--fader-r, var(--layer-b)) / 0.75));
+    background: oklch(var(--edge));
   }
   .range-fader::-moz-range-track {
     height: 6px;
     border-radius: 3px;
-    background: linear-gradient(to right, oklch(var(--fader-l, var(--layer-a)) / 0.75), oklch(var(--edge)) 30% 70%, oklch(var(--fader-r, var(--layer-b)) / 0.75));
+    background: oklch(var(--edge));
   }
   .range-fader::-webkit-slider-thumb {
     width: 18px;

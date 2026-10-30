@@ -57,7 +57,7 @@ export function TopBar({ onFullscreen }: { onFullscreen: () => void }) {
                 <PresetsMenu />
                 <Button variant="ghost" onClick={copyLink}>
                     <Link2 size={15} aria-hidden="true" />
-                    <span className="max-[1399px]:sr-only">Copy link</span>
+                    Copy link
                 </Button>
                 <MidiMenu />
                 <PopOutButton />

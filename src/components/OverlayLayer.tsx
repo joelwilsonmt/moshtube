@@ -11,7 +11,8 @@ export const overlayErrorStore = createStore(() => ({ error: null as string | nu
 
 const IMAGE_EXT = /\.(gif|png|webp|apng|avif)(\?|#|$)/i
 
-function PatternCanvas({ pattern }: { pattern: Pattern }) {
+// reportErrors: false for previews, so only the stage layer owns the error message
+export function PatternCanvas({ pattern, reportErrors = true }: { pattern: Pattern; reportErrors?: boolean }) {
     const ref = useRef<HTMLCanvasElement>(null)
     useEffect(() => {
         const canvas = ref.current
@@ -23,10 +24,10 @@ function PatternCanvas({ pattern }: { pattern: Pattern }) {
             console.error(err)
         }
         if (!renderer) {
-            overlayErrorStore.setState({ error: 'This browser could not start WebGL, so patterns are unavailable.' })
+            if (reportErrors) overlayErrorStore.setState({ error: 'This browser could not start WebGL, so patterns are unavailable.' })
             return
         }
-        overlayErrorStore.setState({ error: null })
+        if (reportErrors) overlayErrorStore.setState({ error: null })
         let raf = 0
         const tick = () => {
             renderer!.render(beatsNow(), appStore.getState().overlay.hue)
@@ -37,14 +38,14 @@ function PatternCanvas({ pattern }: { pattern: Pattern }) {
             cancelAnimationFrame(raf)
             renderer!.dispose()
         }
-    }, [pattern])
+    }, [pattern, reportErrors])
     return <canvas ref={ref} className="h-full w-full" />
 }
 
-function Media({ url }: { url: string }) {
+export function MediaView({ url, reportErrors = true }: { url: string; reportErrors?: boolean }) {
     const playing = useStore(appStore, (s) => s.outputPlaying)
     const videoRef = useRef<HTMLVideoElement>(null)
-    useEffect(() => overlayErrorStore.setState({ error: null }), [url])
+    useEffect(() => { if (reportErrors) overlayErrorStore.setState({ error: null }) }, [url, reportErrors])
     useEffect(() => {
         const video = videoRef.current
         if (!video) return
@@ -52,7 +53,7 @@ function Media({ url }: { url: string }) {
         else video.pause()
     }, [playing, url])
 
-    const onError = () => overlayErrorStore.setState({ error: 'That link did not load. It needs to be a direct link to a video or GIF file.' })
+    const onError = () => reportErrors && overlayErrorStore.setState({ error: 'That link did not load. It needs to be a direct link to a video or GIF file.' })
     if (IMAGE_EXT.test(url)) return <img src={url} alt="" onError={onError} className="h-full w-full object-cover" />
     return <video ref={videoRef} key={url} src={url} autoPlay loop muted playsInline onError={onError} className="h-full w-full object-cover" />
 }
@@ -65,7 +66,7 @@ export function OverlayLayer() {
             className="pointer-events-none absolute inset-0 z-20"
             style={{ mixBlendMode: overlay.blend, opacity: overlay.opacity }}
         >
-            {overlay.kind === 'pattern' ? <PatternCanvas pattern={overlay.pattern} /> : <Media url={overlay.url} />}
+            {overlay.kind === 'pattern' ? <PatternCanvas pattern={overlay.pattern} /> : <MediaView url={overlay.url} />}
         </div>
     )
 }

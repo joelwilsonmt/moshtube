@@ -149,17 +149,23 @@ function Layer({ id, isTop }: LayerProps) {
             className={`absolute inset-0 pointer-events-none overflow-hidden ${isTop ? 'z-10' : 'z-0'}`}
             style={isTop ? { mixBlendMode: blendMode } : undefined}
         >
-            <YouTube
-                key={videoId}
-                videoId={videoId}
-                opts={opts}
-                onReady={onReady}
-                onStateChange={onStateChange}
-                onError={(e) => videoId && handlePlayerError(id, videoId, e.data)}
-                className="w-full h-full scale-[1.35]" // crops YouTube's title bar and letterboxing
-                iframeClassName="w-full h-full pointer-events-none"
-                title={`Source ${id === 'videoA' ? 'A' : 'B'} video`}
-            />
+            {/* Cover-crop: the 16:9 player fills any stage shape (container query units) */}
+            <div
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                style={{ width: 'max(100cqw, calc(100cqh * 16 / 9))', height: 'max(100cqh, calc(100cqw * 9 / 16))' }}
+            >
+                <YouTube
+                    key={videoId}
+                    videoId={videoId}
+                    opts={opts}
+                    onReady={onReady}
+                    onStateChange={onStateChange}
+                    onError={(e) => videoId && handlePlayerError(id, videoId, e.data)}
+                    className="w-full h-full scale-[1.35]" // crops YouTube's title bar
+                    iframeClassName="w-full h-full pointer-events-none"
+                    title={`Source ${id === 'videoA' ? 'A' : 'B'} video`}
+                />
+            </div>
             <div
                 ref={scanRef}
                 className="absolute inset-0 pointer-events-none z-20 hidden"
@@ -189,7 +195,7 @@ export function Stage() {
     })
 
     return (
-        <div className="relative h-full w-full overflow-hidden bg-black" aria-label="Output" role="img">
+        <div className="absolute inset-0 overflow-hidden bg-black [container-type:size]" aria-label="Output" role="img">
             <div ref={masterRef} className="absolute inset-0 isolate">
                 <Layer id="videoA" isTop={activeOverlay === 'videoA'} />
                 <Layer id="videoB" isTop={activeOverlay === 'videoB'} />

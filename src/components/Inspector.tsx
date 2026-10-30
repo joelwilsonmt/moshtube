@@ -108,6 +108,9 @@ function SourceInspector({ id }: { id: SourceId }) {
                 </Field>
             </Section>
 
+            <Section title="Effects">
+                <EffectStack target={id} />
+            </Section>
             <Section
                 title="Loop"
                 actions={
@@ -153,9 +156,6 @@ function SourceInspector({ id }: { id: SourceId }) {
                 </div>
             </Section>
 
-            <Section title="Effects">
-                <EffectStack target={id} />
-            </Section>
         </>
     )
 }
