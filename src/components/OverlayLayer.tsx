@@ -149,7 +149,7 @@ export function LottieThumb({ name, hue }: { name: string; hue: number }) {
 // reads as part of the show rather than a stall. Plain CSS, so the Lottie player only
 // loads when Layer C actually uses Lottie.
 function SwapCue() {
-    const loading = useStore(swapStore, (s) => s.videoA || s.videoB)
+    const loading = useStore(swapStore, (s) => s.loading.videoA || s.loading.videoB)
     const [mounted, setMounted] = useState(loading)
     useEffect(() => {
         if (loading) return setMounted(true)

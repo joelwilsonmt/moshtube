@@ -7,7 +7,7 @@ export type Selection = 'videoA' | 'videoB' | 'overlay' | 'master'
 const params = new URLSearchParams(window.location.search)
 
 export const uiStore = createStore(() => ({
-  selected: 'videoA' as Selection,
+  selected: 'master' as Selection,
   // Shared links (?view=1) open stage-first until the visitor chooses to remix
   viewer: params.has('view') && !params.has('output'),
   status: null as { text: string; detail?: string; at: number; sticky?: boolean } | null,

@@ -15,6 +15,7 @@ import { liveMix } from './Stage'
 import { cn, IconButton, Select, Toggle } from './ui/core'
 import { BLEND_LABELS, blendOptions, rateOptions, shapeOptions } from './options'
 import { MoshCluster } from './MoshCluster'
+import { swapStore } from '../engine/swap'
 import { LottieView, MediaView, PatternCanvas } from './OverlayLayer'
 import { isBuiltInLottie, LOTTIE_LABELS } from '../fx/lotties'
 
@@ -46,6 +47,9 @@ const RING = { videoA: 'ring-layer-a/60', videoB: 'ring-layer-b/60', overlay: 'r
 export const stripClass = (selected: boolean, layer: keyof typeof RING, width: string, flash = false) =>
     cn('flex shrink-0 flex-col gap-2 rounded-md p-2 transition-colors', width, selected ? `bg-raised ring-1 ring-inset ${RING[layer]}` : 'bg-rack/60', flash && 'strip-flash')
 
+// Neutral dashed edge on anything a lock protects (amber stays for live and primary)
+const LOCKED = 'outline-dashed outline-1 -outline-offset-1 outline-dim/60'
+
 const SEGMENTS = 8
 
 // LED-style meter of live modulation; updated per frame without re-rendering
@@ -68,8 +72,16 @@ function Meter({ level, layer }: { level: (beats: number, state: AppState) => nu
     )
 }
 
+// The video the stage is showing right now: during a swap that's still the outgoing one
+function useShownVideo(id: SourceId) {
+    const current = useStore(appStore, (s) => s[id].id)
+    const loading = useStore(swapStore, (s) => s.loading[id])
+    const shown = useStore(swapStore, (s) => s.shown[id])
+    return { videoId: loading && shown ? shown : current, pending: loading && !!shown && shown !== current }
+}
+
 function Thumbnail({ id }: { id: SourceId }) {
-    const videoId = useStore(appStore, (s) => s[id].id)
+    const { videoId, pending } = useShownVideo(id)
     const duration = useStore(appStore, (s) => s[id].duration)
     const playing = useStore(appStore, (s) => s[id].playing && s.outputPlaying)
     const error = useStore(videoErrorStore, (s) => s[id])
@@ -82,12 +94,13 @@ function Thumbnail({ id }: { id: SourceId }) {
             </div>
             {error && <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-danger ring-2 ring-rack" title={error} />}
             {!playing && !error && <Pause size={18} aria-hidden="true" className="absolute inset-0 m-auto text-ink drop-shadow" />}
+            {pending && <span className="absolute left-1 top-1 rounded-sm bg-rack/85 px-1.5 py-0.5 text-[11px] font-medium text-ink">Next loading</span>}
         </div>
     )
 }
 
 function SourceStrip({ id }: { id: SourceId }) {
-    const videoId = useStore(appStore, (s) => s[id].id)
+    const { videoId } = useShownVideo(id)
     const playing = useStore(appStore, (s) => s[id].playing)
     const hold = useStore(appStore, (s) => s[id].hold)
     const effects = useStore(appStore, (s) => s[id].effects)
@@ -98,7 +111,7 @@ function SourceStrip({ id }: { id: SourceId }) {
     const { name } = LAYER[id]
 
     return (
-        <section aria-label={name} className={stripClass(selected, id, 'w-[176px] min-[1280px]:w-[196px] min-[1400px]:w-[216px]', flash)}>
+        <section aria-label={hold ? `${name} (locked)` : name} className={cn(stripClass(selected, id, 'w-[176px] min-[1280px]:w-[196px] min-[1400px]:w-[216px]', flash), hold && LOCKED)}>
             <button
                 type="button"
                 onClick={() => select(id)}
@@ -133,7 +146,7 @@ function SourceStrip({ id }: { id: SourceId }) {
                     onClick={() => updateVideoState(id, { hold: !hold })}
                 />
                 <span className="ml-auto truncate text-xs text-dim">
-                    {effects.length ? effects.map((e) => EFFECTS[e.type].label).join(' + ') : 'No effects'}
+                    {hold ? 'Locked' : effects.length ? effects.map((e) => EFFECTS[e.type].label).join(' + ') : 'No effects'}
                 </span>
             </div>
         </section>
@@ -165,6 +178,7 @@ function Crossfader() {
     const markerRef = useRef<HTMLDivElement>(null)
     const pos = faderPos(mix, top)
     const flash = useChangedFlash('crossfade')
+    const mixLocked = useStore(appStore, (s) => s.locks.mix)
 
     // Amber marker rides the live value while the mix oscillates
     useFrame(() => {
@@ -182,7 +196,7 @@ function Crossfader() {
         : `Source ${topL} is on top in ${blendName} mode: toward ${topL} blends it in fully, the other end shows the other source alone`
 
     return (
-        <section aria-label="Crossfader" className={cn('flex min-w-[232px] min-[1280px]:min-w-[272px] min-[1400px]:min-w-[300px] flex-1 flex-col justify-between gap-2 rounded-md bg-rack/60 px-3 py-2', flash && 'strip-flash')}>
+        <section aria-label={mixLocked ? 'Crossfader (locked)' : 'Crossfader'} className={cn('flex min-w-[232px] min-[1280px]:min-w-[272px] min-[1400px]:min-w-[300px] flex-1 flex-col justify-between gap-2 rounded-md bg-rack/60 px-3 py-2', flash && 'strip-flash', mixLocked && LOCKED)}>
             <div className="flex items-center justify-between gap-2">
                 <label htmlFor="crossfader" className="label">Crossfade</label>
                 <div className="flex items-center gap-1">
@@ -261,7 +275,7 @@ function OverlayStrip() {
     const flash = useChangedFlash('overlay')
 
     return (
-        <section aria-label="Layer C" className={stripClass(selected, 'overlay', 'w-[124px] min-[1280px]:w-[132px]', flash)}>
+        <section aria-label={overlay.hold ? 'Layer C (locked)' : 'Layer C'} className={cn(stripClass(selected, 'overlay', 'w-[124px] min-[1280px]:w-[132px]', flash), overlay.hold && LOCKED)}>
             <button type="button" onClick={() => select('overlay')} aria-pressed={selected} aria-label={`Edit Layer C (${content})`} className="flex flex-1 flex-col gap-2 text-left">
                 <span className="flex w-full items-center gap-2">
                     <LayerChip layer="overlay" />
@@ -304,9 +318,10 @@ function MasterStrip() {
     const effects = useStore(appStore, (s) => s.masterEffects)
     const selected = useStore(uiStore, (s) => s.selected === 'master')
     const flash = useChangedFlash('master')
+    const masterLocked = useStore(appStore, (s) => s.locks.blend)
 
     return (
-        <section aria-label="Master" className={stripClass(selected, 'master', 'w-[168px] min-[1280px]:w-[184px] min-[1400px]:w-[200px]', flash)}>
+        <section aria-label={masterLocked ? 'Master (locked)' : 'Master'} className={cn(stripClass(selected, 'master', 'w-[168px] min-[1280px]:w-[184px] min-[1400px]:w-[200px]', flash), masterLocked && LOCKED)}>
             <div className="flex items-center gap-2">
                 <button type="button" onClick={() => select('master')} aria-pressed={selected} aria-label="Edit Master" className="flex flex-1 items-center gap-2 rounded-sm text-left">
                     <LayerChip layer="master" />

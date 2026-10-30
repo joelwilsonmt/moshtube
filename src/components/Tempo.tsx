@@ -6,7 +6,7 @@ import { AUTO_MOSH_BARS, MoshScopeSchema, type MoshScope } from '../store/schema
 import { beatsNow } from '../engine/clock'
 import { minBarsFor, MOSH_SCOPES, tap } from '../engine/tempo'
 import { useFrame } from '../hooks/useLive'
-import { SHORTCUTS } from '../hooks/useShortcuts'
+import { setShortcutsEnabled, SHORTCUTS, shortcutsStore } from '../hooks/useShortcuts'
 import { Button, IconButton, Kbd, Select, Toggle } from './ui/core'
 
 // Four steps of the bar; the current beat lights amber
@@ -109,6 +109,15 @@ export function Tempo() {
     )
 }
 
+function ShortcutsSwitch() {
+    const enabled = useStore(shortcutsStore, (s) => s.enabled)
+    return (
+        <Toggle pressed={enabled} onChange={setShortcutsEnabled} title="Single-key shortcuts can clash with screen readers and voice control; turn them off here">
+            {enabled ? 'On' : 'Off'}
+        </Toggle>
+    )
+}
+
 // Native popover: escapes overflow, closes on Escape and outside click
 export function ShortcutsButton() {
     return (
@@ -119,7 +128,10 @@ export function ShortcutsButton() {
                 popover="auto"
                 className="fixed inset-auto right-3 top-12 m-0 w-72 rounded-lg border border-line bg-panel p-4 text-ink shadow-[0_12px_32px_oklch(0_0_0/0.55)]"
             >
-                <h2 className="label mb-3">Keyboard shortcuts</h2>
+                <div className="mb-3 flex items-center justify-between gap-2">
+                    <h2 className="label">Keyboard shortcuts</h2>
+                    <ShortcutsSwitch />
+                </div>
                 <dl className="space-y-2 text-[13px]">
                     {SHORTCUTS.map((s) => (
                         <div key={s.keys} className="flex items-center justify-between gap-3">
