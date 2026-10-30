@@ -43,7 +43,7 @@ export function ViewerView() {
 
             <div className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-lg border border-line bg-panel/90 p-2 shadow-[0_8px_24px_oklch(0_0_0/0.5)] backdrop-blur">
                 <PlayToggle keyHint={!compact} className="h-11 w-11" />
-                <Button variant="primary" onClick={moshMeDaddy} aria-keyshortcuts="3" className="h-11 whitespace-nowrap px-5 text-[14px] font-semibold">
+                <Button variant="primary" onClick={moshMeDaddy} aria-label="Mosh Me Daddy" aria-keyshortcuts="3" className="h-11 whitespace-nowrap px-5 text-[14px] font-semibold">
                     <Sparkles size={17} aria-hidden="true" />
                     Mosh Me Daddy
                     {!compact && <Kbd>3</Kbd>}
