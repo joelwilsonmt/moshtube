@@ -15,6 +15,7 @@ import { liveMix } from './Stage'
 import { cn, IconButton, Select, Toggle } from './ui/core'
 import { BLEND_LABELS, blendOptions, rateOptions, shapeOptions } from './options'
 import { MoshCluster } from './MoshCluster'
+import { RandomVideoButton } from './RandomVideoButton'
 import { swapStore } from '../engine/swap'
 import { LottieView, MediaView, PatternCanvas } from './OverlayLayer'
 import { isBuiltInLottie, LOTTIE_LABELS } from '../fx/lotties'
@@ -138,6 +139,7 @@ function SourceStrip({ id }: { id: SourceId }) {
                     onClick={() => updateVideoState(id, { playing: !playing })}
                 />
                 <IconButton size="sm" icon={Zap} label={`Mosh ${name} only`} onClick={() => moshVideo(id)} disabled={hold} />
+                <RandomVideoButton size="sm" id={id} name={name} />
                 <IconButton
                     size="sm"
                     icon={hold ? Lock : LockOpen}

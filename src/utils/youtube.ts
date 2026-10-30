@@ -3,6 +3,7 @@ import { appStore, updateVideoState } from '../store/appStore'
 import type { VideoState } from '../store/schema'
 import { SOURCE_A_IDS, SOURCE_B_IDS } from './sourceLists'
 import { libraryStore } from '../store/library'
+import { setPicking } from '../engine/swap'
 
 type Target = 'videoA' | 'videoB'
 
@@ -127,9 +128,11 @@ const pending: Record<Target, number> = { videoA: 0, videoB: 0 }
 
 export async function loadRandomVideo(target: Target, updates: Partial<VideoState> = {}) {
     const token = ++pending[target]
+    setPicking(target, true) // cleared by the stage once the new video starts loading
     const id = await pickRandomId(target)
     if (token !== pending[target]) return
     if (!id) {
+        setPicking(target, false)
         videoErrorStore.setState({ [target]: 'No playable videos left in the random pool.' })
         return
     }

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useStore } from 'zustand'
-import { Shuffle } from 'lucide-react'
 import { appStore, setBlendMode, setOverlay, updateVideoState } from '../store/appStore'
 import { PATTERN_LABELS } from '../fx/patterns'
 import { LottieThumb, overlayErrorStore } from './OverlayLayer'
@@ -9,9 +8,10 @@ import { uiStore } from '../store/uiStore'
 import { PatternSchema, type Pattern, type SourceId } from '../store/schema'
 import { usePlayhead, useVideoTitle } from '../hooks/useLive'
 import { formatTime, parseTime } from '../utils/time'
-import { loadRandomVideo, parseYouTubeId, videoErrorStore } from '../utils/youtube'
+import { parseYouTubeId, videoErrorStore } from '../utils/youtube'
+import { RandomVideoButton } from './RandomVideoButton'
 import { DualRangeSlider } from './ui/DualRangeSlider'
-import { Button, Field, IconButton, Input, Range, Section, Segmented, Select } from './ui/core'
+import { Button, Field, Input, Range, Section, Segmented, Select } from './ui/core'
 import { EffectStack } from './EffectStack'
 import { MyVideos } from './Library'
 import { LAYER, LayerChip } from './Mixer'
@@ -87,7 +87,7 @@ function SourceInspector({ id }: { id: SourceId }) {
                                 className="flex-1"
                                 spellCheck={false}
                             />
-                            <IconButton icon={Shuffle} label="Random video" onClick={() => { checkpoint('random video'); void loadRandomVideo(id, FULL_LOOP) }} className="border border-edge" />
+                            <RandomVideoButton id={id} className="border border-edge" />
                         </div>
                     )}
                 </Field>

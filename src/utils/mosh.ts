@@ -6,7 +6,8 @@ import { BLEND_LABELS } from '../components/options'
 import { EFFECTS, MAX_EFFECTS, randomEffect } from '../fx/effects'
 import { PATTERN_LABELS } from '../fx/patterns'
 import { BUILT_IN_LOTTIES, isBuiltInLottie, LOTTIE_LABELS } from '../fx/lotties'
-import { loadRandomVideo, randomPoolId } from './youtube'
+import { loadRandomVideo, randomPoolId, videoErrorStore } from './youtube'
+import { swapBusy } from '../engine/swap'
 import { isCompact } from './config'
 
 const pick = <T,>(arr: readonly T[]) => arr[Math.floor(Math.random() * arr.length)]
@@ -124,9 +125,12 @@ export const moshMeDaddy = () => {
     // Effects apply now; videos swap in once a playable pick is confirmed
     const parts = [...SOURCES.map(sourceChange), ...moshMix(), moshOverlay(true), moshOutput()]
     const loop = { start: 15, end: -5, loop: true } // end -5 signals "Duration - 5s"
-    const swapped = SOURCES.filter((id) => !appStore.getState()[id].hold)
+    // A source whose last pick is still loading keeps it, so mashing can't queue up loads
+    const unlocked = SOURCES.filter((id) => !appStore.getState()[id].hold)
+    const busy = (id: SourceId) => swapBusy(id, !!videoErrorStore.getState()[id])
+    const swapped = unlocked.filter((id) => !busy(id))
     swapped.forEach((id) => void loadRandomVideo(id, loop))
-    const videos: Change[] = swapped.map((id) => ({ id, text: `New video ${letter(id)}` }))
+    const videos: Change[] = unlocked.map((id) => ({ id, text: swapped.includes(id) ? `New video ${letter(id)}` : `Video ${letter(id)} still loading` }))
     summarize('Mosh Me Daddy', [...videos, ...parts])
 }
 
