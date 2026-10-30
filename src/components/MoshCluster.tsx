@@ -21,7 +21,7 @@ export function MoshCluster({ compact = false, className }: { compact?: boolean;
                 >
                     <Icon size={15} aria-hidden="true" className="shrink-0 text-dim group-hover:text-ink" />
                     <span className="whitespace-nowrap">{label}</span>
-                    {!compact && <span className="ml-auto pl-3 text-xs text-dim max-[1399px]:sr-only">{hint}</span>}
+                    {!compact && <span className="ml-auto whitespace-nowrap pl-3 text-xs text-dim max-[1399px]:sr-only">{hint}</span>}
                     <Kbd>{key}</Kbd>
                 </button>
             ))}
@@ -36,7 +36,7 @@ export function MoshCluster({ compact = false, className }: { compact?: boolean;
             >
                 <Sparkles size={compact ? 15 : 17} aria-hidden="true" className="shrink-0" />
                 <span className="whitespace-nowrap">Mosh Me Daddy</span>
-                {!compact && <span className="ml-auto pl-3 text-xs font-medium opacity-80 max-[1399px]:sr-only">New videos + all</span>}
+                {!compact && <span className="ml-auto whitespace-nowrap pl-3 text-xs font-medium opacity-80 max-[1399px]:sr-only">New videos + all</span>}
                 <Kbd>3</Kbd>
             </button>
         </div>

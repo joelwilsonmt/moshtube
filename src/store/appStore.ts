@@ -27,6 +27,8 @@ export const setOutputPlaying = (playing: boolean) => appStore.setState({ output
 export const setBpm = (bpm: number) => appStore.setState({ bpm: Math.round(Math.min(240, Math.max(40, bpm)) * 10) / 10 })
 export const setAutoMosh = (updates: Partial<AppState['autoMosh']>) =>
   appStore.setState((s) => ({ autoMosh: { ...s.autoMosh, ...updates } }))
+export const setOverlay = (updates: Partial<AppState['overlay']>) =>
+  appStore.setState((s) => ({ overlay: { ...s.overlay, ...updates } }))
 export const setLock = (key: keyof AppState['locks'], value: boolean) =>
   appStore.setState((s) => ({ locks: { ...s.locks, [key]: value } }))
 

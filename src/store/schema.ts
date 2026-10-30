@@ -22,6 +22,18 @@ export const BlendModeSchema = z.enum([
   'exclusion'
 ])
 
+export const PatternSchema = z.enum(['plasma', 'tunnel', 'grid', 'noise'])
+
+// Layer C: our own content composited over A/B (generative patterns or a transparent video/GIF)
+export const OverlaySchema = z.object({
+  kind: z.enum(['off', 'pattern', 'media']).default('off'),
+  pattern: PatternSchema.default('plasma'),
+  hue: z.number().min(0).max(360).default(280),
+  url: z.string().default(''),
+  opacity: z.number().min(0).max(1).default(0.7),
+  blend: BlendModeSchema.default('screen'),
+})
+
 export const MoshScopeSchema = z.enum(['mosh', 'everything', 'daddy'])
 export const AUTO_MOSH_BARS = [1, 2, 4, 8, 16] as const
 
@@ -65,6 +77,7 @@ export const AppStateSchema = z.object({
   mixOsc: OscSchema,
   activeOverlay: z.enum(['videoA', 'videoB']).default('videoA'),
   masterEffects: z.array(EffectSchema).default([]),
+  overlay: OverlaySchema,
   outputPlaying: z.boolean().default(true), // Master render loop
   bpm: z.number().min(40).max(240).default(120),
   autoMosh: z.object({
@@ -86,6 +99,8 @@ export type Effect = z.infer<typeof EffectSchema>
 export type VideoState = z.infer<typeof VideoStateSchema>
 export type AppState = z.infer<typeof AppStateSchema>
 export type SourceId = 'videoA' | 'videoB'
+export type Overlay = z.infer<typeof OverlaySchema>
+export type Pattern = z.infer<typeof PatternSchema>
 export type MoshScope = z.infer<typeof MoshScopeSchema>
 
 const defaultVideo = (id: string): VideoState => ({
@@ -100,6 +115,7 @@ export const defaultState: AppState = {
   mixOsc: { on: false, rate: 16, shape: 'sine' },
   activeOverlay: 'videoA',
   masterEffects: [],
+  overlay: { kind: 'off', pattern: 'plasma', hue: 280, url: '', opacity: 0.7, blend: 'screen' },
   outputPlaying: true,
   bpm: 120,
   autoMosh: { on: false, bars: 4, scope: 'everything' },

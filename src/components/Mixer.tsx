@@ -1,7 +1,8 @@
 import { useRef } from 'react'
 import { useStore } from 'zustand'
 import { ArrowLeftRight, Lock, LockOpen, Pause, Play, Zap } from 'lucide-react'
-import { appStore, setBlendMode, setLock, setMix, setMixOsc, swapLayers, updateVideoState } from '../store/appStore'
+import { appStore, setBlendMode, setLock, setMix, setMixOsc, setOverlay, swapLayers, updateVideoState } from '../store/appStore'
+import { PATTERN_LABELS } from '../fx/patterns'
 import { select, uiStore } from '../store/uiStore'
 import { checkpoint } from '../store/history'
 import { BlendModeSchema, OSC_RATES, WaveShapeSchema, type AppState, type Effect, type SourceId } from '../store/schema'
@@ -17,6 +18,7 @@ import { MoshCluster } from './MoshCluster'
 export const LAYER = {
     videoA: { letter: 'A', name: 'Source A', bg: 'bg-layer-a', text: 'text-layer-a', token: '--layer-a' },
     videoB: { letter: 'B', name: 'Source B', bg: 'bg-layer-b', text: 'text-layer-b', token: '--layer-b' },
+    overlay: { letter: 'C', name: 'Layer C', bg: 'bg-layer-c', text: 'text-layer-c', token: '--layer-c' },
     master: { letter: 'M', name: 'Master', bg: 'bg-layer-m', text: 'text-layer-m', token: '--layer-m' },
 } as const
 
@@ -176,11 +178,20 @@ function Crossfader() {
         : `How much ${topL} blends over ${bottomL} (${BLEND_LABELS[blendMode].split(' ')[0]})`
 
     return (
-        <section aria-label="Crossfader" className="flex min-w-[300px] flex-1 flex-col justify-between gap-2 rounded-md bg-rack/60 px-3 py-2">
+        <section aria-label="Crossfader" className="flex min-w-[272px] min-[1400px]:min-w-[300px] flex-1 flex-col justify-between gap-2 rounded-md bg-rack/60 px-3 py-2">
             <div className="flex items-center justify-between gap-2">
                 <label htmlFor="crossfader" className="label">Crossfade</label>
                 <div className="flex items-center gap-1">
-                    <span className="text-xs text-dim">{Math.round(mix * 100)}%</span>
+                    <button
+                        type="button"
+                        onClick={() => { checkpoint(); swapLayers() }}
+                        title="Swap which source is on top"
+                        className="inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-xs font-medium text-dim transition-colors hover:bg-raised hover:text-ink"
+                    >
+                        <ArrowLeftRight size={13} aria-hidden="true" />
+                        {topL} on top
+                    </button>
+                    <span className="w-9 text-right text-xs text-dim">{Math.round(mix * 100)}%</span>
                     <LockToggle lockKey="mix" what="Crossfade" />
                 </div>
             </div>
@@ -206,16 +217,6 @@ function Crossfader() {
             </div>
             <p id="crossfader-desc" className="sr-only">{description}</p>
             <div className="flex items-center gap-1.5">
-                <button
-                    type="button"
-                    onClick={() => { checkpoint(); swapLayers() }}
-                    title="Swap which source is on top"
-                    className="inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-xs font-medium text-dim transition-colors hover:bg-raised hover:text-ink"
-                >
-                    <ArrowLeftRight size={13} aria-hidden="true" />
-                    {topL} on top
-                </button>
-                <span className="mx-0.5 h-4 w-px bg-line" />
                 <Toggle pressed={mixOsc.on} onChange={(on) => setMixOsc({ on })}>Oscillate</Toggle>
                 <Select
                     aria-label="Crossfade oscillation rate"
@@ -234,6 +235,41 @@ function Crossfader() {
                     {WaveShapeSchema.options.map((s) => <option key={s} value={s}>{s}</option>)}
                 </Select>
             </div>
+        </section>
+    )
+}
+
+function OverlayStrip() {
+    const overlay = useStore(appStore, (s) => s.overlay)
+    const selected = useStore(uiStore, (s) => s.selected === 'overlay')
+    const on = overlay.kind !== 'off'
+    const content = overlay.kind === 'pattern' ? PATTERN_LABELS[overlay.pattern] : overlay.kind === 'media' ? 'Video overlay' : 'Off'
+
+    return (
+        <section aria-label="Layer C" className={cn('flex w-[132px] shrink-0 flex-col gap-2 rounded-md p-2 transition-colors', selected ? 'bg-raised' : 'bg-rack/60')}>
+            <button type="button" onClick={() => select('overlay')} aria-pressed={selected} aria-label="Edit Layer C" className="flex flex-1 flex-col gap-2 text-left">
+                <span className="flex w-full items-center gap-2">
+                    <LayerChip layer="overlay" />
+                    <span className="text-[13px] font-medium">Layer C</span>
+                </span>
+                <span className="flex w-full flex-1 gap-2">
+                    <span className={cn('flex flex-1 items-center justify-center rounded-sm bg-rack px-1 text-center text-xs', on ? 'text-ink' : 'text-dim')}>
+                        {content}
+                    </span>
+                    <Meter layer="overlay" level={(_, state) => (state.overlay.kind === 'off' ? 0 : state.overlay.opacity)} />
+                </span>
+            </button>
+            <Toggle
+                pressed={on}
+                onChange={(next) => {
+                    checkpoint()
+                    setOverlay({ kind: next ? (overlay.url ? 'media' : 'pattern') : 'off' })
+                    if (next) select('overlay')
+                }}
+                className="w-full"
+            >
+                {on ? 'On' : 'Off'}
+            </Toggle>
         </section>
     )
 }
@@ -277,8 +313,9 @@ export function Mixer() {
             <SourceStrip id="videoA" />
             <Crossfader />
             <SourceStrip id="videoB" />
+            <OverlayStrip />
             <MasterStrip />
-            <MoshCluster className="w-[248px] min-[1400px]:w-[300px] shrink-0 justify-center" />
+            <MoshCluster className="w-[212px] min-[1400px]:w-[300px] shrink-0 justify-center" />
         </footer>
     )
 }

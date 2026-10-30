@@ -1,5 +1,5 @@
 import {
-  AppStateSchema, BlendModeSchema, defaultState, EffectTypeSchema, MoshScopeSchema, WaveShapeSchema,
+  AppStateSchema, BlendModeSchema, defaultState, EffectTypeSchema, MoshScopeSchema, PatternSchema, WaveShapeSchema,
   type AppState, type Effect, type Osc, type VideoState,
 } from '../store/schema'
 import { createEffect, EFFECTS } from '../fx/effects'
@@ -61,6 +61,14 @@ export function serializeState(state: AppState): URLSearchParams {
   params.set('overlay', state.activeOverlay)
   if (state.masterEffects.length) params.set('m_fx', encodeEffects(state.masterEffects))
   if (state.bpm !== defaultState.bpm) params.set('bpm', String(state.bpm))
+  const c = state.overlay
+  if (c.kind !== 'off') {
+    params.set('c', c.kind === 'pattern' ? c.pattern : 'media')
+    if (c.kind === 'media') params.set('c_url', c.url)
+    if (c.kind === 'pattern') params.set('c_hue', String(Math.round(c.hue)))
+    params.set('c_op', c.opacity.toFixed(2))
+    params.set('c_blend', c.blend)
+  }
   if (state.autoMosh.on) params.set('auto', `${state.autoMosh.bars}:${state.autoMosh.scope}`)
   const locks = [state.locks.mix && 'mix', state.locks.blend && 'blend'].filter(Boolean)
   if (locks.length) params.set('lock', locks.join(','))
@@ -105,7 +113,22 @@ export function deserializeState(params: URLSearchParams): Partial<AppState> {
   const bars = parseFloat(autoBars)
   const scope = MoshScopeSchema.safeParse(autoScope)
 
+  const cKind = params.get('c')
+  const pattern = PatternSchema.safeParse(cKind)
+  const cBlend = BlendModeSchema.safeParse(params.get('c_blend'))
+  const cUrl = params.get('c_url') ?? ''
+  const layerC = {
+    ...defaultState.overlay,
+    kind: pattern.success ? 'pattern' as const : cKind === 'media' && /^https?:\/\//.test(cUrl) ? 'media' as const : 'off' as const,
+    pattern: pattern.success ? pattern.data : defaultState.overlay.pattern,
+    hue: Math.min(360, Math.max(0, num(params, 'c_hue', defaultState.overlay.hue))),
+    url: /^https?:\/\//.test(cUrl) ? cUrl : '',
+    opacity: Math.min(1, Math.max(0, num(params, 'c_op', defaultState.overlay.opacity))),
+    blend: cBlend.success ? cBlend.data : defaultState.overlay.blend,
+  }
+
   return {
+    overlay: layerC,
     videoA: deserializeVideo(params, 'a', defaultState.videoA),
     videoB: deserializeVideo(params, 'b', defaultState.videoB),
     mix: Math.min(1, Math.max(0, num(params, 'mix', defaultState.mix))),

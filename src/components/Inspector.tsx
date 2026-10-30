@@ -1,18 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useStore } from 'zustand'
 import { Shuffle } from 'lucide-react'
-import { appStore, updateVideoState } from '../store/appStore'
+import { appStore, setOverlay, updateVideoState } from '../store/appStore'
+import { PATTERN_LABELS } from '../fx/patterns'
+import { overlayErrorStore } from './OverlayLayer'
 import { checkpoint } from '../store/history'
 import { uiStore } from '../store/uiStore'
-import type { SourceId } from '../store/schema'
+import { BlendModeSchema, PatternSchema, type Overlay, type Pattern, type SourceId } from '../store/schema'
 import { usePlayhead, useVideoTitle } from '../hooks/useLive'
 import { formatTime, parseTime } from '../utils/time'
 import { loadRandomVideo, parseYouTubeId, videoErrorStore } from '../utils/youtube'
 import { DualRangeSlider } from './ui/DualRangeSlider'
-import { Field, IconButton, Input, Range, Section } from './ui/core'
+import { Button, Field, IconButton, Input, Range, Section, Segmented, Select } from './ui/core'
 import { EffectStack } from './EffectStack'
 import { MyVideos } from './Library'
-import { LAYER, LayerChip } from './Mixer'
+import { BLEND_LABELS, LAYER, LayerChip } from './Mixer'
 
 // Commits on blur or Enter; shows the formatted value otherwise
 function TimeInput({ id, value, onCommit }: { id: string; value: number; onCommit: (v: number) => void }) {
@@ -158,6 +160,94 @@ function SourceInspector({ id }: { id: SourceId }) {
     )
 }
 
+function OverlayInspector() {
+    const overlay = useStore(appStore, (s) => s.overlay)
+    const error = useStore(overlayErrorStore, (s) => s.error)
+    const [url, setUrl] = useState(overlay.url)
+    const urlValid = /^https?:\/\/\S+$/.test(url.trim())
+
+    return (
+        <>
+            <Section title="Content">
+                <Segmented
+                    label="Layer C content"
+                    value={overlay.kind}
+                    options={[
+                        { value: 'off', label: 'Off' },
+                        { value: 'pattern', label: 'Pattern' },
+                        { value: 'media', label: 'Video or GIF' },
+                    ]}
+                    onChange={(kind) => { checkpoint(); setOverlay({ kind }) }}
+                />
+                {overlay.kind === 'pattern' && (
+                    <>
+                        <Field label="Pattern">
+                            {(fieldId) => (
+                                <Select id={fieldId} value={overlay.pattern} onChange={(e) => { checkpoint(); setOverlay({ pattern: e.target.value as Pattern }) }}>
+                                    {PatternSchema.options.map((p) => <option key={p} value={p}>{PATTERN_LABELS[p]}</option>)}
+                                </Select>
+                            )}
+                        </Field>
+                        <Field label="Hue" value={`${Math.round(overlay.hue)}°`}>
+                            {(fieldId) => (
+                                <Range id={fieldId} min={0} max={360} step={1} value={overlay.hue} onChange={(e) => setOverlay({ hue: parseFloat(e.target.value) })} />
+                            )}
+                        </Field>
+                        <p className="text-xs text-dim">Patterns move with the tempo and pulse on every beat.</p>
+                    </>
+                )}
+                {overlay.kind === 'media' && (
+                    <form
+                        className="space-y-1.5"
+                        onSubmit={(e) => {
+                            e.preventDefault()
+                            if (!urlValid) return
+                            checkpoint()
+                            setOverlay({ url: url.trim() })
+                        }}
+                    >
+                        <label htmlFor="overlay-url" className="text-xs font-medium text-dim">Direct link to a video or GIF</label>
+                        <div className="flex gap-1.5">
+                            <Input
+                                id="overlay-url"
+                                value={url}
+                                onChange={(e) => setUrl(e.target.value)}
+                                placeholder="https://…/loop.webm"
+                                aria-invalid={!!error}
+                                aria-describedby="overlay-url-msg"
+                                spellCheck={false}
+                            />
+                            <Button type="submit" disabled={!urlValid} className="shrink-0">Load</Button>
+                        </div>
+                        <p id="overlay-url-msg" className={error ? 'text-xs text-danger' : 'text-xs text-dim'}>
+                            {error ?? 'WebM with transparency works best. YouTube links go in Source A or B.'}
+                        </p>
+                    </form>
+                )}
+                {overlay.kind === 'off' && (
+                    <p className="text-[13px] text-dim">Layer C sits over both sources: a tempo-synced pattern, or a transparent video or GIF from a link.</p>
+                )}
+            </Section>
+            {overlay.kind !== 'off' && (
+                <Section title="Mix">
+                    <Field label="Opacity" value={`${Math.round(overlay.opacity * 100)}%`}>
+                        {(fieldId) => (
+                            <Range id={fieldId} min={0} max={1} step={0.01} value={overlay.opacity} onChange={(e) => setOverlay({ opacity: parseFloat(e.target.value) })} />
+                        )}
+                    </Field>
+                    <Field label="Blend">
+                        {(fieldId) => (
+                            <Select id={fieldId} value={overlay.blend} onChange={(e) => { checkpoint(); setOverlay({ blend: e.target.value as Overlay['blend'] }) }}>
+                                {BlendModeSchema.options.map((m) => <option key={m} value={m}>{BLEND_LABELS[m]}</option>)}
+                            </Select>
+                        )}
+                    </Field>
+                </Section>
+            )}
+        </>
+    )
+}
+
 export function Inspector() {
     const selected = useStore(uiStore, (s) => s.selected)
     return (
@@ -167,7 +257,9 @@ export function Inspector() {
                 <h2 className="text-[14px] font-semibold">{LAYER[selected].name}</h2>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto">
-                {selected === 'master' ? (
+                {selected === 'overlay' ? (
+                    <OverlayInspector />
+                ) : selected === 'master' ? (
                     <Section title="Output effects">
                         <EffectStack target="master" />
                     </Section>

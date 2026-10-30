@@ -1,7 +1,7 @@
 import { createStore } from 'zustand/vanilla'
 
 // Interface-only state: never serialized, never undone
-export type Selection = 'videoA' | 'videoB' | 'master'
+export type Selection = 'videoA' | 'videoB' | 'overlay' | 'master'
 
 export const uiStore = createStore(() => ({
   selected: 'videoA' as Selection,

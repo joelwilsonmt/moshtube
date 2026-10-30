@@ -17,6 +17,7 @@ export default {
         'signal-ink': token('signal-ink'),
         'layer-a': token('layer-a'),
         'layer-b': token('layer-b'),
+        'layer-c': token('layer-c'),
         'layer-m': token('layer-m'),
         danger: token('danger'),
       },

@@ -7,6 +7,7 @@ import { applyFx, FxDefs, wave } from '../fx/effects'
 import { beatsNow } from '../engine/clock'
 import { registerPlayer } from '../engine/players'
 import { handlePlayerError } from '../utils/youtube'
+import { OverlayLayer } from './OverlayLayer'
 
 // Live top-layer opacity: the mix, swept from 0 up to it when oscillating
 export function liveMix(state: AppState, beats: number) {
@@ -192,6 +193,7 @@ export function Stage() {
             <div ref={masterRef} className="absolute inset-0 isolate">
                 <Layer id="videoA" isTop={activeOverlay === 'videoA'} />
                 <Layer id="videoB" isTop={activeOverlay === 'videoB'} />
+                <OverlayLayer />
                 <div
                     ref={scanRef}
                     className="absolute inset-0 pointer-events-none z-20 hidden"
