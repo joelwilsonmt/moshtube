@@ -1,9 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useStore } from 'zustand'
 import { createStore } from 'zustand/vanilla'
-import { Minimize, SlidersHorizontal } from 'lucide-react'
+import { Minimize, SlidersHorizontal, Sparkles } from 'lucide-react'
 import { enterMixer, uiStore } from '../store/uiStore'
 import { useIdle } from '../hooks/useLive'
+import { moshMeDaddy } from '../utils/mosh'
 import { Stage } from './Stage'
 import { MoshCluster } from './MoshCluster'
 import { PlayToggle } from './TopBar'
@@ -54,10 +55,16 @@ function FullscreenPill() {
             )}
         >
             {viewer ? (
-                <Button variant="primary" onClick={() => { void document.exitFullscreen(); enterMixer() }} className="whitespace-nowrap">
-                    <SlidersHorizontal size={15} aria-hidden="true" />
-                    Remix this
-                </Button>
+                <>
+                    <Button variant="primary" onClick={moshMeDaddy} className="whitespace-nowrap">
+                        <Sparkles size={15} aria-hidden="true" />
+                        Mosh Me Daddy
+                    </Button>
+                    <Button onClick={() => { void document.exitFullscreen(); enterMixer() }} className="whitespace-nowrap">
+                        <SlidersHorizontal size={15} aria-hidden="true" />
+                        Remix this
+                    </Button>
+                </>
             ) : (
                 <MoshCluster compact />
             )}

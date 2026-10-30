@@ -13,15 +13,16 @@ export function PresetsMenu() {
 
     return (
         <>
-            <Button variant="ghost" popoverTarget={POPOVER_ID}>
+            <Button variant="ghost" popoverTarget={POPOVER_ID} title="Saved mixes and where random videos come from">
                 <Bookmark size={15} aria-hidden="true" />
                 <span className="max-[1399px]:sr-only">Presets</span>
             </Button>
             <div
                 id={POPOVER_ID}
                 popover="auto"
-                className="fixed inset-auto right-3 top-12 m-0 w-80 rounded-lg border border-line bg-panel p-4 text-ink shadow-[0_12px_32px_oklch(0_0_0/0.55)]"
+                className="fixed inset-auto right-3 top-12 m-0 max-h-[calc(100dvh-4rem)] w-80 overflow-y-auto rounded-lg border border-line bg-panel p-4 text-ink shadow-[0_12px_32px_oklch(0_0_0/0.55)]"
             >
+                <h3 className="label mb-2">Saved mixes</h3>
                 <form
                     className="flex gap-2"
                     onSubmit={(e) => {
@@ -56,13 +57,17 @@ export function PresetsMenu() {
                         Save mixes you like to come back to them. Presets stay in this browser; use Copy link to share one.
                     </p>
                 )}
+
+                <div className="-mx-4 mt-4 border-t border-line px-4 pt-3.5">
+                    <MyVideos />
+                </div>
             </div>
         </>
     )
 }
 
-// Shuffle source: the built-in picks or a list the user pastes in
-export function MyVideos() {
+// Where Random video and Mosh Me Daddy pick from: the built-in picks or a pasted list
+function MyVideos() {
     const pool = useStore(libraryStore, (s) => s.pool)
     const useMyPool = useStore(libraryStore, (s) => s.useMyPool)
     const [text, setText] = useState(() => pool.map((id) => `https://youtu.be/${id}`).join('\n'))
@@ -70,9 +75,9 @@ export function MyVideos() {
 
     return (
         <div className="space-y-2">
-            <p className="text-xs font-medium text-dim" aria-hidden="true">Shuffle picks from (both sources)</p>
+            <h3 className="label" aria-hidden="true">Random videos come from</h3>
             <Segmented
-                label="Shuffle picks from (both sources)"
+                label="Random videos come from"
                 value={useMyPool && pool.length ? 'mine' : 'picks'}
                 options={[
                     { value: 'picks', label: 'Moshtube picks' },
@@ -80,7 +85,7 @@ export function MyVideos() {
                 ]}
                 onChange={(v) => setUseMyPool(v === 'mine')}
             />
-            {useMyPool && !pool.length && <p className="text-xs text-dim">Add some videos below first. Until then, shuffle uses Moshtube picks.</p>}
+            {useMyPool && !pool.length && <p className="text-xs text-dim">Add some videos below first. Until then, random videos come from Moshtube picks.</p>}
             <details className="group" open={useMyPool && !pool.length ? true : undefined}>
                 <summary className="inline-flex cursor-pointer list-none items-center rounded-md border border-edge px-2 py-1 text-xs font-medium text-dim hover:bg-raised hover:text-ink [&::-webkit-details-marker]:hidden">
                     <span className="group-open:hidden">Edit my videos</span>

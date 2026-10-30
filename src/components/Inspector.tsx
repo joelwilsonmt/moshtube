@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from 'zustand'
-import { appStore, setBlendMode, setOverlay, updateVideoState } from '../store/appStore'
+import { appStore, setBlendMode, setMixOsc, setOverlay, swapLayers, updateVideoState } from '../store/appStore'
 import { PATTERN_LABELS } from '../fx/patterns'
 import { LottieThumb, overlayErrorStore } from './OverlayLayer'
 import { checkpoint } from '../store/history'
@@ -11,11 +11,10 @@ import { formatTime, parseTime } from '../utils/time'
 import { parseYouTubeId, videoErrorStore } from '../utils/youtube'
 import { RandomVideoButton } from './RandomVideoButton'
 import { DualRangeSlider } from './ui/DualRangeSlider'
-import { Button, Field, Input, Range, Section, Segmented, Select } from './ui/core'
+import { Button, Field, Input, Range, Section, Segmented, Select, Toggle } from './ui/core'
 import { EffectStack } from './EffectStack'
-import { MyVideos } from './Library'
 import { LAYER, LayerChip } from './Mixer'
-import { BLEND_HINTS, blendOptions, rateOptions } from './options'
+import { BLEND_HINTS, blendOptions, rateOptions, shapeOptions } from './options'
 import { BUILT_IN_LOTTIES, isBuiltInLottie, LOTTIE_LABELS } from '../fx/lotties'
 
 // Commits on blur or Enter; shows the formatted value otherwise
@@ -96,7 +95,6 @@ function SourceInspector({ id }: { id: SourceId }) {
                     {playerError && <p className="text-danger">{playerError} Try another link or press Random video.</p>}
                     {!draftInvalid && !playerError && title && <p className="truncate text-dim" title={title}>{title}</p>}
                 </div>
-                <MyVideos />
                 <Field label="Position" value={`${formatTime(time)} / ${formatTime(state.duration)}`}>
                     {(fieldId) => (
                         <Range
@@ -340,6 +338,33 @@ function MasterBlend() {
     )
 }
 
+// The crossfader's settings beyond the fader itself; the strip keeps only the live controls
+function CrossfadeSettings() {
+    const mixOsc = useStore(appStore, (s) => s.mixOsc)
+    const top = useStore(appStore, (s) => s.activeOverlay)
+    const topL = LAYER[top].letter
+    return (
+        <Section title="Crossfade" id="crossfade-settings">
+            <Segmented
+                label="Source on top"
+                value={top}
+                options={[{ value: 'videoA', label: 'A on top' }, { value: 'videoB', label: 'B on top' }]}
+                onChange={(next) => { if (next !== top) { checkpoint('layer swap'); swapLayers() } }}
+            />
+            <p className="-mt-1 text-xs text-dim">The blend lays {topL} over the other source; the fader sets how much of {topL} comes through.</p>
+            <Toggle pressed={mixOsc.on} onChange={(on) => setMixOsc({ on })}>Oscillate the crossfade</Toggle>
+            <div className="grid grid-cols-2 gap-2">
+                <Field label="Rate">
+                    {(fieldId) => <Select id={fieldId} value={mixOsc.rate} options={rateOptions()} onChange={(rate) => setMixOsc({ rate })} />}
+                </Field>
+                <Field label="Shape">
+                    {(fieldId) => <Select id={fieldId} value={mixOsc.shape} options={shapeOptions} onChange={(shape) => setMixOsc({ shape })} />}
+                </Field>
+            </div>
+        </Section>
+    )
+}
+
 export function Inspector() {
     const selected = useStore(uiStore, (s) => s.selected)
     return (
@@ -354,6 +379,7 @@ export function Inspector() {
                 ) : selected === 'master' ? (
                     <>
                         <MasterBlend />
+                        <CrossfadeSettings />
                         <Section title="Output effects">
                             <EffectStack target="master" />
                         </Section>
