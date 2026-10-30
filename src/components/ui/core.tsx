@@ -3,6 +3,7 @@ import { twMerge } from 'tailwind-merge'
 import * as React from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { sliderCheckpoint } from '../../store/history'
+import { focusedByKeyboard } from '../../engine/modality'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -50,7 +51,7 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
       className={cn(
         'inline-flex shrink-0 items-center justify-center rounded-md transition-colors duration-150 disabled:pointer-events-none disabled:opacity-40',
         size === 'sm' ? 'h-7 w-7' : 'h-8 w-8',
-        active ? 'bg-signal/15 text-signal hover:bg-signal/25' : 'text-dim hover:text-ink hover:bg-raised active:bg-line',
+        active ? 'bg-raised text-ink ring-1 ring-inset ring-edge hover:bg-line/70' : 'text-dim hover:text-ink hover:bg-raised active:bg-line',
         className
       )}
       {...props}
@@ -67,7 +68,7 @@ export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
       ref={ref}
       type={type}
       className={cn(
-        'h-8 w-full rounded-md border border-edge bg-rack px-2.5 text-[13px] text-ink placeholder:text-dim/80 transition-colors focus-visible:border-signal focus-visible:outline-none aria-[invalid=true]:border-danger',
+        'h-8 w-full rounded-md border border-edge bg-rack px-2.5 text-[13px] text-ink placeholder:text-dim/80 transition-colors focus-visible:border-signal aria-[invalid=true]:border-danger',
         className
       )}
       {...props}
@@ -76,14 +77,19 @@ export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
 )
 Input.displayName = 'Input'
 
+// A mouse pick gives focus back to the page, so keyboard shortcuts keep working
 export const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement>>(
-  ({ className, ...props }, ref) => (
+  ({ className, onChange, ...props }, ref) => (
     <select
       ref={ref}
       className={cn(
-        'h-8 w-full rounded-md border border-edge bg-rack pl-2 pr-7 text-[13px] text-ink transition-colors focus-visible:border-signal focus-visible:outline-none',
+        'h-8 w-full rounded-md border border-edge bg-rack pl-2 pr-7 text-[13px] text-ink transition-colors focus-visible:border-signal',
         className
       )}
+      onChange={(e) => {
+        onChange?.(e)
+        if (!focusedByKeyboard()) e.currentTarget.blur()
+      }}
       {...props}
     />
   )
@@ -163,12 +169,13 @@ export function Toggle({ pressed, onChange, children, className, ...props }: Omi
       aria-pressed={pressed}
       onClick={() => onChange(!pressed)}
       className={cn(
-        'h-7 shrink-0 whitespace-nowrap rounded-md border px-2 text-xs font-medium transition-colors duration-150',
-        pressed ? 'border-signal/50 bg-signal/15 text-signal' : 'border-edge text-dim hover:bg-raised hover:text-ink',
+        'inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border px-2 text-xs font-medium transition-colors duration-150',
+        pressed ? 'border-ink/60 bg-raised text-ink' : 'border-edge text-dim hover:bg-raised hover:text-ink',
         className
       )}
       {...props}
     >
+      <span aria-hidden="true" className={cn('h-1.5 w-1.5 shrink-0 rounded-full', pressed ? 'bg-ink' : 'ring-1 ring-inset ring-dim')} />
       {children}
     </button>
   )

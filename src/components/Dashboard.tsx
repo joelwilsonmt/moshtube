@@ -1,57 +1,30 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
 import { useStore } from 'zustand'
-import { Link2, Minimize, Sparkles, Undo2 } from 'lucide-react'
+import { Link2, Sparkles, Undo2 } from 'lucide-react'
 import { historyStore, undo } from '../store/history'
-import { useIdle, useMediaQuery } from '../hooks/useLive'
+import { uiStore } from '../store/uiStore'
+import { useMediaQuery } from '../hooks/useLive'
 import { useShortcuts } from '../hooks/useShortcuts'
 import { useAutoMosh } from '../engine/tempo'
 import { moshMeDaddy } from '../utils/mosh'
-import { Stage } from './Stage'
+import { StageHost, StageSlot, toggleStageFullscreen } from './StageHost'
 import { ViewerView } from './Viewer'
-import { uiStore } from '../store/uiStore'
 import { copyLink, PlayToggle, StatusLine, TopBar, Wordmark } from './TopBar'
 import { Inspector } from './Inspector'
 import { Mixer } from './Mixer'
-import { MoshCluster } from './MoshCluster'
-import { Button, cn, IconButton } from './ui/core'
+import { Button, IconButton } from './ui/core'
 
 function DesktopView() {
-    const stageRef = useRef<HTMLDivElement>(null)
-    const [isFullscreen, setIsFullscreen] = useState(false)
-    const idle = useIdle(isFullscreen)
-
-    useEffect(() => {
-        const onChange = () => setIsFullscreen(document.fullscreenElement === stageRef.current)
-        document.addEventListener('fullscreenchange', onChange)
-        return () => document.removeEventListener('fullscreenchange', onChange)
-    }, [])
-
-    const toggleFullscreen = useCallback(() => {
-        if (document.fullscreenElement) void document.exitFullscreen()
-        else void stageRef.current?.requestFullscreen()
-    }, [])
-
-    useShortcuts({ fullscreen: toggleFullscreen })
+    useShortcuts({ fullscreen: toggleStageFullscreen })
 
     return (
-        <div className="grid h-[100dvh] min-h-[600px] grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto]">
-            <TopBar onFullscreen={toggleFullscreen} />
-            <div className="grid min-h-0 grid-cols-[minmax(0,1fr)_320px]">
-                <main ref={stageRef} className={cn('relative min-w-0 bg-black', isFullscreen && idle && 'cursor-none')}>
-                    <Stage />
-                    {isFullscreen && (
-                        <div
-                            className={cn(
-                                'absolute bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-lg border border-line bg-panel/90 p-2 shadow-[0_8px_24px_oklch(0_0_0/0.5)] backdrop-blur transition-[opacity,transform] duration-300',
-                                idle ? 'pointer-events-none translate-y-3 opacity-0' : 'opacity-100'
-                            )}
-                        >
-                            <MoshCluster compact />
-                            <div className="mx-1 h-6 w-px bg-line" />
-                            <PlayToggle />
-                            <IconButton icon={Minimize} label="Exit fullscreen (F)" onClick={toggleFullscreen} />
-                        </div>
-                    )}
+        <div className="grid h-[100dvh] min-h-[480px] grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto]">
+            <a href="#mosh" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:bg-panel focus:px-3 focus:py-2">
+                Skip to the mosh buttons
+            </a>
+            <TopBar onFullscreen={toggleStageFullscreen} />
+            <div className="grid min-h-0 grid-cols-[minmax(0,1fr)_320px] max-[1279px]:grid-cols-[minmax(0,1fr)_280px]">
+                <main className="relative min-w-0 bg-black">
+                    <StageSlot className="absolute inset-0" />
                 </main>
                 <Inspector />
             </div>
@@ -70,11 +43,10 @@ function MobileView() {
                 <IconButton icon={Link2} label="Copy link to this mix" onClick={copyLink} className="h-11 w-11" />
             </header>
             <main className="relative min-h-[40dvh] w-full flex-1 bg-black">
-                <Stage />
+                <StageSlot className="absolute inset-0" />
             </main>
             <div className="flex flex-col gap-3 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
                 <StatusLine className="min-h-5" />
-                <p className="text-[13px] text-dim">Full controls, effects and the mixer are on desktop.</p>
                 <Button variant="primary" onClick={moshMeDaddy} className="h-14 text-base">
                     <Sparkles size={18} aria-hidden="true" />
                     Mosh Me Daddy
@@ -86,15 +58,23 @@ function MobileView() {
                         Undo
                     </Button>
                 </div>
+                <p className="text-center text-xs text-dim [@media(max-height:500px)]:hidden">Effects, layers and the full mixer open on a larger screen.</p>
             </div>
         </div>
     )
 }
 
+// Phones, plus touch screens too short for the rack (a phone turned sideways)
+const COMPACT = '(max-width: 767px), (max-height: 500px) and (pointer: coarse)'
+
 export function Dashboard() {
     useAutoMosh()
-    const isPhone = useMediaQuery('(max-width: 767px)')
+    const compact = useMediaQuery(COMPACT)
     const viewer = useStore(uiStore, (s) => s.viewer)
-    if (viewer) return <ViewerView />
-    return isPhone ? <MobileView /> : <DesktopView />
+    return (
+        <>
+            {viewer ? <ViewerView /> : compact ? <MobileView /> : <DesktopView />}
+            <StageHost />
+        </>
+    )
 }

@@ -113,7 +113,8 @@ components:
     padding: "0 8px"
     height: "28px"
   toggle-on:
-    textColor: "{colors.signal}"
+    backgroundColor: "{colors.raised}"
+    textColor: "{colors.ink}"
   input:
     backgroundColor: "{colors.rack}"
     textColor: "{colors.ink}"
@@ -173,7 +174,7 @@ The system refuses two things the build visibly avoids: the generic dark admin d
 A cool blue-grey graphite neutral ramp with one warm amber signal and four functional layer colours.
 
 ### Primary
-- **Signal Amber** (signal): the live/active/primary lamp. Fills the Mosh Me Daddy button (and at most one commit action inside a popover), lights the current beat, tops every LED meter as the peak segment, draws the live-value marker on oscillating sliders and the crossfader, tints pressed toggles (15% fill, 50% border, amber text) and active icon buttons, and is the focus ring, caret, and text-selection tint.
+- **Signal Amber** (signal): the live/active/primary lamp. Fills the Mosh Me Daddy button (and at most one commit action inside a popover), lights the current beat, tops every LED meter as the peak segment, draws the live-value marker on oscillating sliders and the crossfader, pulses the edge of strips a randomizer just changed, and is the focus ring, caret, and text-selection tint. Pressed toggles and active icon buttons are not amber (see Toggles).
 - **Signal Ink** (signal-ink): text and icons on a signal fill (9.45:1).
 
 ### Secondary
@@ -193,7 +194,7 @@ A cool blue-grey graphite neutral ramp with one warm amber signal and four funct
 - **Stage Black** (stage): the stage and output well only; the videos sit on true black.
 
 ### Named Rules
-**The One Lamp Rule.** Amber means live, active, or primary, and nothing else. If an element is amber it is either moving with the music, switched on, or the single action to press on that surface.
+**The One Lamp Rule.** Amber means live or primary, and nothing else. If an element is amber it is either moving with the music, marking what just changed, or the single action to press on that surface. Switched-on controls stay neutral so the primary action keeps the only amber fill.
 
 **The Labels-Not-Paint Rule.** Layer colours identify a channel; they never fill panels, buttons, or backgrounds. Chips, meters, and selection rings are the whole list.
 
@@ -256,7 +257,7 @@ Compact, matter-of-fact hardware buttons.
 - **Default:** raised fill, ink text, 1px edge border, 13px medium; hover moves to line at 70%, pressed to line.
 - **Primary:** signal fill, signal-ink text, semibold; hover brightens (110%), pressed dims (95%). Mosh Me Daddy everywhere it appears; inside a popover, at most one commit action (Save mix, Connect MIDI).
 - **Ghost:** no fill, dim text; hover raises to the raised fill and ink text.
-- **Icon buttons:** 32px (or 28px) square, 16px (or 14px) stroke icons, dim at rest; when active or held, signal at 15% fill with signal icon.
+- **Icon buttons:** 32px (or 28px) square, 16px (or 14px) stroke icons, dim at rest; when active or held, raised fill, ink icon and a 1px inset edge ring.
 - **Hover / Focus:** 150ms colour transitions; focus is a 2px solid signal outline offset 2px. Disabled drops to 40% opacity.
 - **Key hints:** a small outlined keycap (18px, 10px semibold, current-colour border at 30%) sits at the end of a button whose action has a shortcut.
 
@@ -272,7 +273,7 @@ Compact, matter-of-fact hardware buttons.
 - **Style:** rack well, 1px edge border, 6px corners, 32px tall (28px compact), 13px ink text, dim placeholder; amber caret.
 - **Focus:** the border turns signal; no outline ring on text fields and selects. Grouped controls (the tempo field) show focus on the group border.
 - **Error / Disabled:** invalid fields take a danger border; disabled controls drop to 40 to 50% opacity.
-- **Toggles:** 28px, edge border, dim 12px text; on state is signal at 15% fill, signal at 50% border, signal text.
+- **Toggles:** 28px, edge border, dim 12px text, with a 6px state dot before the label (hollow when off). On state: raised fill, ink at 60% border, ink text, filled ink dot. Active icon buttons (locks, holds) use raised fill with a 1px inset edge ring.
 - **Segmented:** rack well with 2px inset padding; selected segment is raised with ink text, others dim.
 - **Sliders:** 4px edge track with a 14px ink cap; the crossfader is a 6px track with the fader cap. A dual-handle loop range uses a dim fill between handles.
 
@@ -295,7 +296,7 @@ The three randomizers, always in the same order: Mosh and Mosh Everything as 36p
 ## Do's and Don'ts
 
 ### Do:
-- **Do** keep amber to live, active, focus, and the one primary action per surface (signal at 15% fill for pressed toggles and active icon buttons).
+- **Do** keep amber to live modulation, change pulses, focus, and the one primary action per surface; pressed toggles and active icon buttons stay neutral.
 - **Do** give every operable control an edge-coloured boundary or a raised fill; reserve line for dividers.
 - **Do** lead every channel with its layer chip and carry its layer colour into its meter and selection ring.
 - **Do** set section and control-group names as 11px uppercase Saira labels in dim, and everything else in the system sans.

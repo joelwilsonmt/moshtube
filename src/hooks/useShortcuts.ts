@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { appStore, setAutoMosh, setOutputPlaying } from '../store/appStore'
 import { tap } from '../engine/tempo'
+import { focusedByKeyboard } from '../engine/modality'
 import { redo, undo } from '../store/history'
 import { moshEverything, moshGlobal, moshMeDaddy } from '../utils/mosh'
 
@@ -26,15 +27,10 @@ const isTyping = (el: EventTarget | null) =>
         el.tagName === 'SELECT' ||
         (el instanceof HTMLInputElement && TEXT_INPUTS.includes(el.type)))
 
-// Space activates a button reached by Tab; after a mouse click it means play/pause.
-// (:focus-visible can't tell: Chrome turns it on as soon as any key is pressed.)
-let focusedByKeyboard = false
-window.addEventListener('pointerdown', () => { focusedByKeyboard = false }, true)
-window.addEventListener('keydown', (e) => { if (e.key === 'Tab') focusedByKeyboard = true }, true)
-
+// Space activates a button reached by Tab; after a mouse click it means play/pause
 const ownsSpace = (el: EventTarget | null) =>
     el instanceof HTMLElement &&
-    (((el.tagName === 'BUTTON' || el.tagName === 'SUMMARY') && focusedByKeyboard) ||
+    (((el.tagName === 'BUTTON' || el.tagName === 'SUMMARY') && focusedByKeyboard()) ||
         (el instanceof HTMLInputElement && el.type === 'checkbox'))
 
 export function useShortcuts(handlers: { fullscreen: () => void }) {

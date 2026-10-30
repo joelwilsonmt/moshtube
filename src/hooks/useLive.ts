@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { useStore } from 'zustand'
+import { uiStore } from '../store/uiStore'
 import { getPlayer } from '../engine/players'
 import type { SourceId } from '../store/schema'
 import { getVideoTitle } from '../utils/youtube'
@@ -77,4 +79,21 @@ export function useIdle(enabled: boolean) {
         }
     }, [enabled])
     return idle
+}
+
+// True for a moment after the last randomizer changed `id` (re-arms on every change)
+export function useChangedFlash(id: string) {
+    const changed = useStore(uiStore, (s) => s.changed)
+    const [on, setOn] = useState(false)
+    useEffect(() => {
+        if (!changed.ids.includes(id) || Date.now() - changed.at > 1000) return
+        setOn(false)
+        const raf = requestAnimationFrame(() => setOn(true))
+        const t = setTimeout(() => setOn(false), 950)
+        return () => {
+            cancelAnimationFrame(raf)
+            clearTimeout(t)
+        }
+    }, [changed, id])
+    return on
 }

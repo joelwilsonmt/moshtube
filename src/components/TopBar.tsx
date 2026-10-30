@@ -9,7 +9,7 @@ import { ShortcutsButton, Tempo } from './Tempo'
 import { PresetsMenu } from './Library'
 import { MidiMenu, PopOutButton } from './Live'
 
-const STATUS_MS = 4000
+const STATUS_MS = 7000
 
 export function Wordmark({ className = '' }: { className?: string }) {
     return <span className={`font-label text-[17px] font-bold uppercase leading-none tracking-[0.06em] ${className}`}>Moshtube</span>
@@ -27,8 +27,9 @@ export function StatusLine({ className = '' }: { className?: string }) {
         return () => clearTimeout(t)
     }, [status])
     return (
-        <p role="status" aria-live="polite" className={`truncate text-[13px] text-dim transition-opacity duration-300 ${visible ? 'opacity-100' : 'opacity-0'} ${className}`}>
-            {status?.text}
+        <p role="status" aria-live="polite" title={status?.detail} className={`truncate text-[13px] text-dim transition-opacity duration-300 ${visible ? 'opacity-100' : 'opacity-0'} ${className}`}>
+            <span aria-hidden={!!status?.detail}>{visible && status?.text}</span>
+            {status?.detail && <span className="sr-only">{visible && status.detail}</span>}
         </p>
     )
 }

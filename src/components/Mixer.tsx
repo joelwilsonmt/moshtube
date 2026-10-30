@@ -8,7 +8,7 @@ import { checkpoint, sliderCheckpoint } from '../store/history'
 import { BlendModeSchema, OSC_RATES, WaveShapeSchema, type AppState, type Effect, type SourceId } from '../store/schema'
 import { EFFECTS, liveAmount, normalizedAmount } from '../fx/effects'
 import { beatsNow } from '../engine/clock'
-import { useFrame, usePlayhead, useVideoTitle } from '../hooks/useLive'
+import { useChangedFlash, useFrame, usePlayhead, useVideoTitle } from '../hooks/useLive'
 import { thumbnailUrl, videoErrorStore } from '../utils/youtube'
 import { moshVideo } from '../utils/mosh'
 import { liveMix } from './Stage'
@@ -60,8 +60,8 @@ export function LayerChip({ layer, className }: { layer: keyof typeof LAYER; cla
 
 const RING = { videoA: 'ring-layer-a/60', videoB: 'ring-layer-b/60', overlay: 'ring-layer-c/60', master: 'ring-layer-m/50' } as const
 
-export const stripClass = (selected: boolean, layer: keyof typeof RING, width: string) =>
-    cn('flex shrink-0 flex-col gap-2 rounded-md p-2 transition-colors', width, selected ? `bg-raised ring-1 ring-inset ${RING[layer]}` : 'bg-rack/60')
+export const stripClass = (selected: boolean, layer: keyof typeof RING, width: string, flash = false) =>
+    cn('flex shrink-0 flex-col gap-2 rounded-md p-2 transition-colors', width, selected ? `bg-raised ring-1 ring-inset ${RING[layer]}` : 'bg-rack/60', flash && 'strip-flash')
 
 const SEGMENTS = 8
 
@@ -111,10 +111,11 @@ function SourceStrip({ id }: { id: SourceId }) {
     const selected = useStore(uiStore, (s) => s.selected === id)
     const error = useStore(videoErrorStore, (s) => s[id])
     const title = useVideoTitle(videoId)
+    const flash = useChangedFlash(id)
     const { name } = LAYER[id]
 
     return (
-        <section aria-label={name} className={stripClass(selected, id, 'w-[196px] min-[1400px]:w-[216px]')}>
+        <section aria-label={name} className={stripClass(selected, id, 'w-[176px] min-[1280px]:w-[196px] min-[1400px]:w-[216px]', flash)}>
             <button
                 type="button"
                 onClick={() => select(id)}
@@ -180,6 +181,7 @@ function Crossfader() {
     const blendMode = useStore(appStore, (s) => s.blendMode)
     const markerRef = useRef<HTMLDivElement>(null)
     const pos = faderPos(mix, top)
+    const flash = useChangedFlash('crossfade')
 
     // Amber marker rides the live value while the mix oscillates
     useFrame(() => {
@@ -197,7 +199,7 @@ function Crossfader() {
         : `Source ${topL} is on top in ${blendName} mode: toward ${topL} blends it in fully, the other end shows the other source alone`
 
     return (
-        <section aria-label="Crossfader" className="flex min-w-[272px] min-[1400px]:min-w-[300px] flex-1 flex-col justify-between gap-2 rounded-md bg-rack/60 px-3 py-2">
+        <section aria-label="Crossfader" className={cn('flex min-w-[232px] min-[1280px]:min-w-[272px] min-[1400px]:min-w-[300px] flex-1 flex-col justify-between gap-2 rounded-md bg-rack/60 px-3 py-2', flash && 'strip-flash')}>
             <div className="flex items-center justify-between gap-2">
                 <label htmlFor="crossfader" className="label">Crossfade</label>
                 <div className="flex items-center gap-1">
@@ -205,6 +207,7 @@ function Crossfader() {
                         type="button"
                         onClick={() => { checkpoint('layer swap'); swapLayers() }}
                         title="Swap which source is on top"
+                        aria-label={`Swap layers (${topL} is on top${blendMode !== 'normal' ? `, ${blendName}` : ''})`}
                         className="inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-xs font-medium text-dim transition-colors hover:bg-raised hover:text-ink"
                     >
                         <ArrowLeftRight size={13} aria-hidden="true" />
@@ -247,7 +250,7 @@ function Crossfader() {
                     aria-label="Crossfade oscillation shape"
                     value={mixOsc.shape}
                     onChange={(e) => setMixOsc({ shape: e.target.value as AppState['mixOsc']['shape'] })}
-                    className="h-7 w-auto min-w-0 flex-1 pr-6 text-xs capitalize"
+                    className="h-7 w-auto min-w-0 flex-1 pr-6 text-xs capitalize max-[1279px]:hidden"
                 >
                     {WaveShapeSchema.options.map((s) => <option key={s} value={s}>{s}</option>)}
                 </Select>
@@ -269,9 +272,10 @@ function OverlayStrip() {
     const selected = useStore(uiStore, (s) => s.selected === 'overlay')
     const on = overlay.kind !== 'off'
     const content = overlay.kind === 'pattern' ? PATTERN_LABELS[overlay.pattern] : overlay.kind === 'media' ? 'Video overlay' : 'Off'
+    const flash = useChangedFlash('overlay')
 
     return (
-        <section aria-label="Layer C" className={stripClass(selected, 'overlay', 'w-[132px]')}>
+        <section aria-label="Layer C" className={stripClass(selected, 'overlay', 'w-[124px] min-[1280px]:w-[132px]', flash)}>
             <button type="button" onClick={() => select('overlay')} aria-pressed={selected} aria-label={`Edit Layer C (${content})`} className="flex flex-1 flex-col gap-2 text-left">
                 <span className="flex w-full items-center gap-2">
                     <LayerChip layer="overlay" />
@@ -313,9 +317,10 @@ function MasterStrip() {
     const blendMode = useStore(appStore, (s) => s.blendMode)
     const effects = useStore(appStore, (s) => s.masterEffects)
     const selected = useStore(uiStore, (s) => s.selected === 'master')
+    const flash = useChangedFlash('master')
 
     return (
-        <section aria-label="Master" className={stripClass(selected, 'master', 'w-[184px] min-[1400px]:w-[200px]')}>
+        <section aria-label="Master" className={stripClass(selected, 'master', 'w-[168px] min-[1280px]:w-[184px] min-[1400px]:w-[200px]', flash)}>
             <div className="flex items-center gap-2">
                 <LayerChip layer="master" />
                 <span className="flex-1 text-[13px] font-medium">Master</span>
@@ -346,13 +351,13 @@ function MasterStrip() {
 
 export function Mixer() {
     return (
-        <footer className="flex shrink-0 items-stretch gap-2 overflow-x-auto border-t border-line bg-panel p-2">
+        <footer className="flex shrink-0 items-stretch gap-2 overflow-x-auto border-t border-line bg-panel p-2 max-[1279px]:flex-wrap">
             <SourceStrip id="videoA" />
             <Crossfader />
             <SourceStrip id="videoB" />
             <OverlayStrip />
             <MasterStrip />
-            <MoshCluster className="w-[212px] min-[1400px]:w-[300px] shrink-0 max-[1279px]:order-first" />
+            <MoshCluster id="mosh" className="w-[212px] min-[1400px]:w-[300px] shrink-0 max-[1279px]:order-first max-[1279px]:w-full max-[1279px]:flex-row" />
         </footer>
     )
 }

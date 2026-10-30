@@ -40,6 +40,7 @@ export function Tempo() {
                 type="button"
                 popoverTarget="tempo"
                 title="Tempo and auto-mosh"
+                aria-label={`Tempo: ${Math.round(bpm)} BPM${auto.on ? ', auto-mosh on' : ''}`}
                 className="flex h-8 shrink-0 items-center gap-2.5 rounded-md border border-edge bg-rack px-2.5 transition-colors hover:bg-raised"
             >
                 <BeatLight />

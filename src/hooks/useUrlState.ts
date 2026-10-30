@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { appStore } from '../store/appStore'
 import { serializeState, deserializeState } from '../utils/serialization'
 import { rollFreshMix } from '../utils/mosh'
+import { uiStore } from '../store/uiStore'
 
 // Runs once before the first render, so the stage never mounts with videos it's about
 // to replace. A visit with no mix in the URL opens on a fresh random one.
@@ -21,7 +22,9 @@ export function useUrlSync() {
     const unsub = appStore.subscribe((state) => {
       clearTimeout(timeout)
       timeout = setTimeout(() => {
-        const newSearch = serializeState(state).toString()
+        const params = serializeState(state)
+        if (uiStore.getState().viewer) params.set('view', '1') // copying the address bar shares the viewer too
+        const newSearch = params.toString()
         if (window.location.search.replace(/^\?/, '') !== newSearch) {
           const url = new URL(window.location.href)
           url.search = newSearch

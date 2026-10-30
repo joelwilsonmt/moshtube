@@ -17,7 +17,7 @@ export function MidiMenu() {
 
     return (
         <>
-            <IconButton icon={Cable} label="MIDI controller" popoverTarget={POPOVER_ID} active={status === 'ready' && inputs.length > 0} />
+            <IconButton icon={Cable} label={status === 'ready' && inputs.length ? `MIDI controller (connected: ${inputs.join(', ')})` : 'MIDI controller'} popoverTarget={POPOVER_ID} />
             <div
                 id={POPOVER_ID}
                 popover="auto"

@@ -59,6 +59,8 @@ function restore(target: AppState) {
   appStore.setState({ ...target, outputPlaying })
 }
 
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+
 export function undo() {
   const { past, future } = historyStore.getState()
   const prev = past[past.length - 1]
@@ -66,7 +68,7 @@ export function undo() {
   historyStore.setState({ past: past.slice(0, -1), future: [{ state: capture(), label: prev.label }, ...future] })
   restore(prev.state)
   last = { label: '', at: 0 }
-  announce(`Undid ${prev.label}`)
+  announce(`Undid ${cap(prev.label)}`)
 }
 
 export function redo() {
@@ -75,5 +77,5 @@ export function redo() {
   if (!next) return announce('Nothing to redo')
   historyStore.setState({ past: [...past, { state: capture(), label: next.label }], future: future.slice(1) })
   restore(next.state)
-  announce(`Redid ${next.label}`)
+  announce(`Redid ${cap(next.label)}`)
 }

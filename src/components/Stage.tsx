@@ -9,6 +9,8 @@ import { registerPlayer } from '../engine/players'
 import { handlePlayerError } from '../utils/youtube'
 import { OverlayLayer } from './OverlayLayer'
 
+const REVEAL_DELAY_MS = 2000
+
 // Live top-layer opacity: the mix, swept from 0 up to it when oscillating
 export function liveMix(state: AppState, beats: number) {
     if (!state.mixOsc.on) return state.mix
@@ -48,6 +50,11 @@ function Layer({ id, isTop }: LayerProps) {
 
     const playerRef = useRef<YouTubePlayer | null>(null)
     const wrapRef = useRef<HTMLDivElement>(null)
+    // Hold the layer at black until its video actually plays, so YouTube's loading
+    // chrome never shows on the output; then fade it in
+    const readyRef = useRef(false)
+    const fadeRef = useRef(0)
+    const revealRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
     const scanRef = useRef<HTMLDivElement>(null)
     const shouldPlay = playing && isMasterPlaying
 
@@ -57,7 +64,9 @@ function Layer({ id, isTop }: LayerProps) {
         const fx = applyFx(state[id].effects, id, { beats, bpm: state.bpm })
         wrap.style.filter = fx.filter
         wrap.style.transform = fx.transform
-        wrap.style.opacity = isTop ? String(liveMix(state, beats)) : '1'
+        fadeRef.current += ((readyRef.current ? 1 : 0) - fadeRef.current) * 0.08
+        if (fadeRef.current > 0.995) fadeRef.current = 1
+        wrap.style.opacity = String((isTop ? liveMix(state, beats) : 1) * fadeRef.current)
         if (scanRef.current) {
             scanRef.current.style.display = fx.scanlineHeight ? 'block' : 'none'
             if (fx.scanlineHeight) scanRef.current.style.backgroundSize = `100% ${fx.scanlineHeight}px`
@@ -68,6 +77,10 @@ function Layer({ id, isTop }: LayerProps) {
     useEffect(() => () => {
         playerRef.current = null
         registerPlayer(id, null)
+        readyRef.current = false
+        fadeRef.current = 0
+        clearTimeout(revealRef.current)
+        revealRef.current = undefined
     }, [id, videoId])
 
     useEffect(() => {
@@ -133,10 +146,16 @@ function Layer({ id, isTop }: LayerProps) {
         if (state.playing && appStore.getState().outputPlaying) {
             if (state.start > 0) e.target.seekTo(state.start, true)
             e.target.playVideo()
+        } else {
+            readyRef.current = true // nothing will play, so show what's there
         }
     }
 
     const onStateChange: YouTubeProps['onStateChange'] = (e) => {
+        // YouTube's own play/pause glyph lingers for a moment after playback starts
+        if (e.data === 1 && !readyRef.current && !revealRef.current) {
+            revealRef.current = setTimeout(() => { readyRef.current = true }, REVEAL_DELAY_MS)
+        }
         if (e.data === 0) { // ENDED
             e.target.seekTo(start, true)
             e.target.playVideo()
