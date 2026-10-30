@@ -29,6 +29,7 @@ interface SelectProps<T extends string | number> {
 }
 
 const MENU_MAX = 320
+const SHORTCUT_KEYS = new Set(['1', '2', '3', 'z', 'Z', 't', 'a', 'f', '?'])
 const GAP = 4
 
 // Menus render in the nearest open popover (top layer) or <body>, positioned against
@@ -88,7 +89,16 @@ export function Select<T extends string | number>({
         disabled,
         ...(aria['aria-label'] ? { 'aria-label': aria['aria-label'], 'aria-labelledby': undefined } : {}),
         'aria-describedby': aria['aria-describedby'],
+        onKeyDown: (e) => {
+            const native = e.nativeEvent as KeyboardEvent & { preventDownshiftDefault?: boolean }
+            // Closed: app shortcut keys go to the app, not to type-ahead
+            if (!isOpen && SHORTCUT_KEYS.has(e.key)) native.preventDownshiftDefault = true
+            // Open: Escape closes only this menu, not a popover around it
+            if (isOpen && e.key === 'Escape') e.preventDefault()
+        },
     })
+    // The menu takes the trigger's name (a missing visible label would leave it unnamed)
+    const menuProps = getMenuProps(aria['aria-label'] ? { 'aria-label': aria['aria-label'], 'aria-labelledby': undefined } : {})
 
     return (
         <>
@@ -108,7 +118,7 @@ export function Select<T extends string | number>({
             </div>
             {createPortal(
                 <ul
-                    {...getMenuProps()}
+                    {...menuProps}
                     className={cn(
                         'fixed z-[60] overflow-y-auto rounded-lg border border-line bg-panel p-1 text-[13px] text-ink shadow-[0_12px_32px_oklch(0_0_0/0.55)] focus:outline-none',
                         !(isOpen && box) && 'hidden'

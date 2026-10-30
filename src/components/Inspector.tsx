@@ -315,7 +315,7 @@ function OverlayInspector() {
                             <Range id={fieldId} min={0} max={1} step={0.01} value={overlay.opacity} onChange={(e) => setOverlay({ opacity: parseFloat(e.target.value) })} />
                         )}
                     </Field>
-                    <Field label="Blend">
+                    <Field label="Layer C blend">
                         {(fieldId) => (
                             <Select id={fieldId} value={overlay.blend} options={blendOptions.map(({ short, ...o }) => o)} onChange={(blend) => { checkpoint('Layer C blend'); setOverlay({ blend }) }} />
                         )}

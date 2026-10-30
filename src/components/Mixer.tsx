@@ -308,8 +308,10 @@ function MasterStrip() {
     return (
         <section aria-label="Master" className={stripClass(selected, 'master', 'w-[168px] min-[1280px]:w-[184px] min-[1400px]:w-[200px]', flash)}>
             <div className="flex items-center gap-2">
-                <LayerChip layer="master" />
-                <span className="flex-1 text-[13px] font-medium">Master</span>
+                <button type="button" onClick={() => select('master')} aria-pressed={selected} aria-label="Edit Master" className="flex flex-1 items-center gap-2 rounded-sm text-left">
+                    <LayerChip layer="master" />
+                    <span className="flex-1 text-[13px] font-medium">Master</span>
+                </button>
                 <LockToggle lockKey="blend" what="Master (blend and output effects)" />
             </div>
             <div className="flex flex-1 gap-2">

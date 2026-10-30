@@ -44,21 +44,20 @@ function MobileView() {
             </header>
             <main className="relative min-h-[40dvh] w-full flex-1 bg-black">
                 <StageSlot className="absolute inset-0" />
+                {/* The whole picture is the button: tap the video to mosh */}
+                <button type="button" onClick={moshMeDaddy} aria-label="Mosh Me Daddy (tap the video)" className="absolute inset-0 z-10 focus-visible:outline-offset-[-4px]" />
             </main>
             <div className="flex flex-col gap-3 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-                <StatusLine className="min-h-5" />
-                <Button variant="primary" onClick={moshMeDaddy} className="h-14 text-base">
-                    <Sparkles size={18} aria-hidden="true" />
-                    Mosh Me Daddy
-                </Button>
-                <div className="grid grid-cols-2 gap-3">
-                    <PlayToggle withText className="h-11" />
-                    <Button onClick={undo} disabled={!canUndo} className="h-11">
-                        <Undo2 size={16} aria-hidden="true" />
-                        Undo
+                <StatusLine full className="min-h-5" />
+                <div className="flex gap-2">
+                    <Button variant="primary" onClick={moshMeDaddy} className="h-12 flex-1 text-[15px]">
+                        <Sparkles size={17} aria-hidden="true" />
+                        Mosh Me Daddy
                     </Button>
+                    <PlayToggle className="h-12 w-12 border border-edge" />
+                    <IconButton icon={Undo2} label="Undo" onClick={undo} disabled={!canUndo} className="h-12 w-12 border border-edge" />
                 </div>
-                <p className="text-center text-xs text-dim [@media(max-height:500px)]:hidden">Effects, layers and the full mixer open on a larger screen.</p>
+                <p className="text-center text-xs text-dim [@media(max-height:500px)]:hidden">Tap the video to mosh. Effects and the full mixer open on a larger screen.</p>
             </div>
         </div>
     )

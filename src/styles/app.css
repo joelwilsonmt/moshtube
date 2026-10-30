@@ -161,3 +161,8 @@
 .lottie-tint path[stroke]:not([stroke="none"]) {
   stroke: currentColor;
 }
+
+/* At thumbnail scale, 1920px-frame strokes vanish; draw them at a readable width */
+.lottie-thumb path[stroke]:not([stroke="none"]) {
+  stroke-width: 70px;
+}

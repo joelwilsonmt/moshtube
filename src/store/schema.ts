@@ -54,6 +54,7 @@ export const EffectSchema = z.object({
   type: EffectTypeSchema,
   amount: z.number(), // peak value; oscillation sweeps from the effect's min up to this
   osc: OscSchema,
+  keep: z.boolean().default(false), // added by hand: Mosh rerolls its amount but keeps it
 })
 
 export const VideoStateSchema = z.object({

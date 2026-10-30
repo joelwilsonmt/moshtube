@@ -16,7 +16,8 @@ export function Wordmark({ className = '' }: { className?: string }) {
 }
 
 // Last action, announced to screen readers and shown briefly
-export function StatusLine({ className = '' }: { className?: string }) {
+// `full` shows the whole message (wrapping), for touch screens where tooltips can't reach
+export function StatusLine({ className = '', full = false }: { className?: string; full?: boolean }) {
     const status = useStore(uiStore, (s) => s.status)
     const [visible, setVisible] = useState(false)
     useEffect(() => {
@@ -27,9 +28,15 @@ export function StatusLine({ className = '' }: { className?: string }) {
         return () => clearTimeout(t)
     }, [status])
     return (
-        <p role="status" aria-live="polite" title={status?.detail} className={`truncate text-[13px] text-dim transition-opacity duration-300 ${visible ? 'opacity-100' : 'opacity-0'} ${className}`}>
-            <span aria-hidden={!!status?.detail}>{visible && status?.text}</span>
-            {status?.detail && <span className="sr-only">{visible && status.detail}</span>}
+        <p role="status" aria-live="polite" title={status?.detail} className={`${full ? 'line-clamp-2' : 'truncate'} text-[13px] text-dim transition-opacity duration-300 ${visible ? 'opacity-100' : 'opacity-0'} ${className}`}>
+            {full ? (
+                <span>{visible && (status?.detail ?? status?.text)}</span>
+            ) : (
+                <>
+                    <span aria-hidden={!!status?.detail}>{visible && status?.text}</span>
+                    {status?.detail && <span className="sr-only">{visible && status.detail}</span>}
+                </>
+            )}
         </p>
     )
 }

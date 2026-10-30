@@ -1,17 +1,15 @@
 import { useRef } from 'react'
 import { useStore } from 'zustand'
-import { ArrowDown, ArrowUp, TriangleAlert, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, Lock, LockOpen, TriangleAlert, X } from 'lucide-react'
 import { appStore, getEffects, setEffects, updateEffect, type FxTarget } from '../store/appStore'
 import { checkpoint } from '../store/history'
 import type { Effect, EffectType } from '../store/schema'
-import { createEffect, EFFECTS, liveAmount, normalizedAmount } from '../fx/effects'
+import { createEffect, EFFECTS, liveAmount, MAX_EFFECTS, normalizedAmount } from '../fx/effects'
 import { beatsNow } from '../engine/clock'
 import { useFrame } from '../hooks/useLive'
 import { effectOptions, rateOptions, shapeOptions } from './options'
 import { Field, IconButton, Range, Select, Toggle } from './ui/core'
 
-// SVG filters on full-frame video get expensive fast
-export const MAX_EFFECTS = 4
 
 const formatValue = (effect: Effect) => {
     const param = EFFECTS[effect.type].param!
@@ -46,7 +44,7 @@ function EffectRow({ target, effect, index, count }: { target: FxTarget; effect:
     const changeType = (type: EffectType) => {
         checkpoint('effect change')
         // Keep the slot and its oscillation; reset the amount to the new effect's default
-        updateEffect(target, effect.id, { type, amount: EFFECTS[type].param?.default ?? 1 })
+        updateEffect(target, effect.id, { type, amount: EFFECTS[type].param?.default ?? 1, keep: true })
     }
 
     return (
@@ -54,6 +52,13 @@ function EffectRow({ target, effect, index, count }: { target: FxTarget; effect:
             <div className="flex items-center gap-1">
                 <span className="w-4 shrink-0 text-xs text-dim" aria-hidden="true">{index + 1}</span>
                 <Select aria-label={`Effect ${index + 1}`} value={effect.type} options={effectOptions} onChange={changeType} className="flex-1" />
+                <IconButton
+                    size="sm"
+                    icon={effect.keep ? Lock : LockOpen}
+                    label={effect.keep ? `${def.label} is kept: Mosh only changes its amount` : `Keep ${def.label} when moshing`}
+                    active={effect.keep}
+                    onClick={() => updateEffect(target, effect.id, { keep: !effect.keep })}
+                />
                 <IconButton size="sm" icon={ArrowUp} label={`Move ${def.label} up`} disabled={index === 0} onClick={() => move(-1)} />
                 <IconButton size="sm" icon={ArrowDown} label={`Move ${def.label} down`} disabled={index === count - 1} onClick={() => move(1)} />
                 <IconButton
@@ -139,7 +144,7 @@ export function EffectStack({ target }: { target: FxTarget }) {
                 options={effectOptions}
                 onChange={(type) => {
                     checkpoint('add effect')
-                    setEffects(target, [...effects, createEffect(type)])
+                    setEffects(target, [...effects, createEffect(type, { keep: true })])
                 }}
             />
         </div>

@@ -1,11 +1,12 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { useStore } from 'zustand'
 import YouTube, { YouTubeProps, YouTubePlayer } from 'react-youtube'
 import { appStore, updateVideoState } from '../store/appStore'
 import type { AppState, SourceId, VideoState } from '../store/schema'
 import { applyFx, FxDefs, wave } from '../fx/effects'
 import { beatsNow } from '../engine/clock'
-import { registerPlayer } from '../engine/players'
+import { getPlayer, registerPlayer } from '../engine/players'
+import { swapStore } from '../engine/swap'
 import { handlePlayerError } from '../utils/youtube'
 import { OverlayLayer } from './OverlayLayer'
 
@@ -32,86 +33,86 @@ function useFxLoop(apply: (beats: number, state: AppState) => void) {
     }, [])
 }
 
-interface LayerProps {
+
+interface SlotProps {
     id: SourceId
-    isTop: boolean
+    videoId: string
+    active: boolean // the slot that follows the store; an outgoing slot just keeps playing
+    onRevealed: () => void
 }
 
-function Layer({ id, isTop }: LayerProps) {
-    const videoId = useStore(appStore, (s) => s[id].id)
+// One YouTube player. It holds at black until its video has played long enough for
+// YouTube's own glyph to clear, then fades in over whatever is underneath.
+function PlayerSlot({ id, videoId, active: activeSlot, onRevealed }: SlotProps) {
+    // Only the slot showing the store's current video takes commands; an outgoing one
+    // must not seek to the next video's loop start during the render that swaps them
+    const isCurrent = useStore(appStore, (s) => s[id].id === videoId)
+    const active = activeSlot && isCurrent
     const playing = useStore(appStore, (s) => s[id].playing)
     const start = useStore(appStore, (s) => s[id].start)
     const end = useStore(appStore, (s) => s[id].end)
     const loop = useStore(appStore, (s) => s[id].loop)
     const seekTrigger = useStore(appStore, (s) => s[id].seek?.trigger)
-    const effects = useStore(appStore, (s) => s[id].effects)
-    const blendMode = useStore(appStore, (s) => s.blendMode)
     const isMasterPlaying = useStore(appStore, (s) => s.outputPlaying)
 
     const playerRef = useRef<YouTubePlayer | null>(null)
-    const wrapRef = useRef<HTMLDivElement>(null)
-    // Hold the layer at black until its video actually plays, so YouTube's loading
-    // chrome never shows on the output; then fade it in
+    const slotRef = useRef<HTMLDivElement>(null)
     const readyRef = useRef(false)
     const fadeRef = useRef(0)
-    const revealRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-    const scanRef = useRef<HTMLDivElement>(null)
+    const revealedRef = useRef(false)
+    const revealTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+    const onRevealedRef = useRef(onRevealed)
+    onRevealedRef.current = onRevealed
     const shouldPlay = playing && isMasterPlaying
 
-    useFxLoop((beats, state) => {
-        const wrap = wrapRef.current
-        if (!wrap) return
-        const fx = applyFx(state[id].effects, id, { beats, bpm: state.bpm })
-        wrap.style.filter = fx.filter
-        wrap.style.transform = fx.transform
+    useFxLoop(() => {
+        const el = slotRef.current
+        if (!el) return
         fadeRef.current += ((readyRef.current ? 1 : 0) - fadeRef.current) * 0.08
         if (fadeRef.current > 0.995) fadeRef.current = 1
-        wrap.style.opacity = String((isTop ? liveMix(state, beats) : 1) * fadeRef.current)
-        if (scanRef.current) {
-            scanRef.current.style.display = fx.scanlineHeight ? 'block' : 'none'
-            if (fx.scanlineHeight) scanRef.current.style.backgroundSize = `100% ${fx.scanlineHeight}px`
+        el.style.opacity = String(fadeRef.current)
+        if (fadeRef.current === 1 && !revealedRef.current) {
+            revealedRef.current = true
+            onRevealedRef.current()
         }
     })
 
-    // A new video remounts the player; drop the old one so nothing calls into a detached iframe
+    // Drop this player from the registry when it goes, unless a newer one took its place
     useEffect(() => () => {
+        clearTimeout(revealTimer.current)
+        if (playerRef.current && getPlayer(id) === playerRef.current) registerPlayer(id, null)
         playerRef.current = null
-        registerPlayer(id, null)
-        readyRef.current = false
-        fadeRef.current = 0
-        clearTimeout(revealRef.current)
-        revealRef.current = undefined
-    }, [id, videoId])
+    }, [id])
 
     useEffect(() => {
-        if (!playerRef.current) return
+        if (!active || !playerRef.current) return
         if (shouldPlay) {
             playerRef.current.setPlaybackRate?.(1)
             playerRef.current.playVideo()
         } else {
             playerRef.current.pauseVideo()
         }
-    }, [shouldPlay])
+    }, [shouldPlay, active])
 
     // Seek when loop start changes, or when the inspector scrubs
     useEffect(() => {
-        playerRef.current?.seekTo(start, true)
-    }, [start])
+        if (active) playerRef.current?.seekTo(start, true)
+    }, [start, active])
 
     useEffect(() => {
         const seek = appStore.getState()[id].seek
-        if (playerRef.current && seek) playerRef.current.seekTo(seek.time, true)
-    }, [seekTrigger, id])
+        if (active && playerRef.current && seek) playerRef.current.seekTo(seek.time, true)
+    }, [seekTrigger, id, active])
 
     useEffect(() => {
-        if (!loop || !end || end <= start) return
+        if (!active || !loop || !end || end <= start) return
         const interval = setInterval(async () => {
             if (!shouldPlay || !playerRef.current) return
             const t = await playerRef.current.getCurrentTime()
             if (t >= end) playerRef.current.seekTo(start, true)
         }, 100)
         return () => clearInterval(interval)
-    }, [start, end, loop, shouldPlay])
+    }, [start, end, loop, shouldPlay, active])
 
     const opts: YouTubeProps['opts'] = {
         height: '100%',
@@ -127,9 +128,10 @@ function Layer({ id, isTop }: LayerProps) {
 
     const onReady: YouTubeProps['onReady'] = (e) => {
         playerRef.current = e.target
-        registerPlayer(id, e.target)
         // The output is a picture, not a control: keep the iframe out of the tab order
         e.target.getIframe?.()?.setAttribute('tabindex', '-1')
+        if (!active) return
+        registerPlayer(id, e.target)
         const state = appStore.getState()[id]
         const dur = e.target.getDuration()
 
@@ -152,15 +154,88 @@ function Layer({ id, isTop }: LayerProps) {
     }
 
     const onStateChange: YouTubeProps['onStateChange'] = (e) => {
-        // YouTube's own play/pause glyph lingers for a moment after playback starts
-        if (e.data === 1 && !readyRef.current && !revealRef.current) {
-            revealRef.current = setTimeout(() => { readyRef.current = true }, REVEAL_DELAY_MS)
+        // YouTube's own play/pause glyph lingers for a few seconds after playback starts
+        if (e.data === 1 && !readyRef.current && !revealTimer.current) {
+            revealTimer.current = setTimeout(() => { readyRef.current = true }, REVEAL_DELAY_MS)
         }
         if (e.data === 0) { // ENDED
-            e.target.seekTo(start, true)
+            e.target.seekTo(appStore.getState()[id].start, true)
             e.target.playVideo()
         }
     }
+
+    return (
+        <div ref={slotRef} className="absolute inset-0" style={{ opacity: 0 }}>
+            {/* Cover-crop: the 16:9 player fills any stage shape (container query units) */}
+            <div
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                style={{ width: 'max(100cqw, calc(100cqh * 16 / 9))', height: 'max(100cqh, calc(100cqw * 9 / 16))' }}
+            >
+                <YouTube
+                    videoId={videoId}
+                    opts={opts}
+                    onReady={onReady}
+                    onStateChange={onStateChange}
+                    onError={(e) => active && handlePlayerError(id, videoId, e.data)}
+                    className="w-full h-full scale-[1.35]" // crops YouTube's title bar
+                    iframeClassName="w-full h-full pointer-events-none"
+                    title={`Source ${id === 'videoA' ? 'A' : 'B'} video`}
+                />
+            </div>
+        </div>
+    )
+}
+
+interface Slot {
+    n: number
+    videoId: string
+    revealed: boolean
+}
+
+interface LayerProps {
+    id: SourceId
+    isTop: boolean
+}
+
+// A source layer: effects, blend and mix on the wrapper; the last video actually shown
+// stays underneath while a new one loads, so a swap crossfades instead of going black
+function Layer({ id, isTop }: LayerProps) {
+    const videoId = useStore(appStore, (s) => s[id].id)
+    const effects = useStore(appStore, (s) => s[id].effects)
+    const blendMode = useStore(appStore, (s) => s.blendMode)
+    const [slots, setSlots] = useState<Slot[]>(() => (videoId ? [{ n: 0, videoId, revealed: false }] : []))
+    const wrapRef = useRef<HTMLDivElement>(null)
+    const scanRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        if (!videoId) return
+        setSlots((current) => {
+            const latest = current[current.length - 1]
+            if (latest?.videoId === videoId) return current
+            const shown = [...current].reverse().find((s) => s.revealed)
+            return [...(shown ? [shown] : []), { n: (latest?.n ?? 0) + 1, videoId, revealed: false }]
+        })
+    }, [videoId])
+
+    useEffect(() => {
+        swapStore.setState({ [id]: slots.some((s) => !s.revealed) })
+    }, [slots, id])
+
+    const revealed = (n: number) =>
+        setSlots((current) => current.filter((s) => s.n >= n).map((s) => (s.n === n ? { ...s, revealed: true } : s)))
+
+    useFxLoop((beats, state) => {
+        const wrap = wrapRef.current
+        if (!wrap) return
+        const fx = applyFx(state[id].effects, id, { beats, bpm: state.bpm })
+        wrap.style.filter = fx.filter
+        wrap.style.transform = fx.transform
+        wrap.style.opacity = isTop ? String(liveMix(state, beats)) : '1'
+        if (scanRef.current) {
+            scanRef.current.style.display = fx.scanlineHeight ? 'block' : 'none'
+            if (fx.scanlineHeight) scanRef.current.style.backgroundSize = `100% ${fx.scanlineHeight}px`
+        }
+    })
 
     return (
         <div
@@ -168,23 +243,15 @@ function Layer({ id, isTop }: LayerProps) {
             className={`absolute inset-0 pointer-events-none overflow-hidden ${isTop ? 'z-10' : 'z-0'}`}
             style={isTop ? { mixBlendMode: blendMode } : undefined}
         >
-            {/* Cover-crop: the 16:9 player fills any stage shape (container query units) */}
-            <div
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-                style={{ width: 'max(100cqw, calc(100cqh * 16 / 9))', height: 'max(100cqh, calc(100cqw * 9 / 16))' }}
-            >
-                <YouTube
-                    key={videoId}
-                    videoId={videoId}
-                    opts={opts}
-                    onReady={onReady}
-                    onStateChange={onStateChange}
-                    onError={(e) => videoId && handlePlayerError(id, videoId, e.data)}
-                    className="w-full h-full scale-[1.35]" // crops YouTube's title bar
-                    iframeClassName="w-full h-full pointer-events-none"
-                    title={`Source ${id === 'videoA' ? 'A' : 'B'} video`}
+            {slots.map((slot, i) => (
+                <PlayerSlot
+                    key={slot.n}
+                    id={id}
+                    videoId={slot.videoId}
+                    active={i === slots.length - 1}
+                    onRevealed={() => revealed(slot.n)}
                 />
-            </div>
+            ))}
             <div
                 ref={scanRef}
                 className="absolute inset-0 pointer-events-none z-20 hidden"
