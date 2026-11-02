@@ -2,12 +2,13 @@ import { createStore } from 'zustand/vanilla'
 import { isCompact } from '../utils/config'
 
 // Interface-only state: never serialized, never undone
-export type Selection = 'videoA' | 'videoB' | 'overlay' | 'master'
+export type Selection = 'videoA' | 'videoB' | 'overlay' | 'crossfade' | 'master'
 
 const params = new URLSearchParams(window.location.search)
 
 export const uiStore = createStore(() => ({
-  selected: 'master' as Selection,
+  // The crossfade panel explains how A and B combine: a useful first thing to see
+  selected: 'crossfade' as Selection,
   // Shared links (?view=1) open stage-first until the visitor chooses to remix
   viewer: params.has('view') && !params.has('output'),
   status: null as { text: string; detail?: string; at: number; sticky?: boolean } | null,

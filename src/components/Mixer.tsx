@@ -13,7 +13,7 @@ import { thumbnailUrl, videoErrorStore } from '../utils/youtube'
 import { moshVideo } from '../utils/mosh'
 import { liveMix } from './Stage'
 import { cn, IconButton, Select, Toggle } from './ui/core'
-import { BLEND_LABELS, blendOptions, rateOptions, shapeOptions } from './options'
+import { BLEND_LABELS, blendOptions, rateOptions } from './options'
 import { MoshCluster } from './MoshCluster'
 import { RandomVideoButton } from './RandomVideoButton'
 import { swapStore } from '../engine/swap'
@@ -25,6 +25,7 @@ export const LAYER = {
     videoB: { letter: 'B', name: 'Source B', bg: 'bg-layer-b', token: '--layer-b' },
     overlay: { letter: 'C', name: 'Layer C', bg: 'bg-layer-c', token: '--layer-c' },
     master: { letter: 'M', name: 'Master', bg: 'bg-layer-m', token: '--layer-m' },
+    crossfade: { letter: 'X', name: 'Crossfade', bg: 'bg-dim', token: '--dim' },
 } as const
 
 
@@ -43,7 +44,7 @@ export function LayerChip({ layer, className }: { layer: keyof typeof LAYER; cla
     )
 }
 
-const RING = { videoA: 'ring-layer-a/60', videoB: 'ring-layer-b/60', overlay: 'ring-layer-c/60', master: 'ring-layer-m/50' } as const
+const RING = { videoA: 'ring-layer-a/60', videoB: 'ring-layer-b/60', overlay: 'ring-layer-c/60', master: 'ring-layer-m/50', crossfade: 'ring-dim/60' } as const
 
 export const stripClass = (selected: boolean, layer: keyof typeof RING, width: string, flash = false) =>
     cn('flex shrink-0 flex-col gap-2 rounded-md p-2 transition-colors', width, selected ? `bg-raised ring-1 ring-inset ${RING[layer]}` : 'bg-rack/60', flash && 'strip-flash')
@@ -112,7 +113,7 @@ function SourceStrip({ id }: { id: SourceId }) {
     const { name } = LAYER[id]
 
     return (
-        <section aria-label={hold ? `${name} (locked)` : name} className={cn(stripClass(selected, id, 'w-[176px] min-[1280px]:w-[196px] min-[1400px]:w-[216px]', flash), hold && LOCKED)}>
+        <section aria-label={hold ? `${name} (locked)` : name} className={cn(stripClass(selected, id, 'w-[160px] min-[1280px]:w-[196px] min-[1400px]:w-[216px]', flash), hold && LOCKED)}>
             <button
                 type="button"
                 onClick={() => select(id)}
@@ -147,7 +148,8 @@ function SourceStrip({ id }: { id: SourceId }) {
                     active={hold}
                     onClick={() => updateVideoState(id, { hold: !hold })}
                 />
-                <span className="ml-auto truncate text-xs text-dim">
+                {/* Too narrow below 1280 to say anything useful; the inspector lists them */}
+                <span className="ml-auto truncate text-xs text-dim max-[1279px]:hidden">
                     {hold ? 'Locked' : effects.length ? effects.map((e) => EFFECTS[e.type].label).join(' + ') : 'No effects'}
                 </span>
             </div>
@@ -168,12 +170,6 @@ function LockToggle({ lockKey, what }: { lockKey: keyof AppState['locks']; what:
     )
 }
 
-// Its settings live in the Master panel, under the blend
-function selectCrossfade() {
-    select('master')
-    requestAnimationFrame(() => document.getElementById('crossfade-settings')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }))
-}
-
 // The fader always runs A (left) to B (right), matching the strips beside it.
 // Underneath, the mix is the top layer's amount, so the position flips with layer order.
 const faderPos = (mix: number, top: SourceId) => (top === 'videoB' ? mix : 1 - mix)
@@ -187,6 +183,7 @@ function Crossfader() {
     const pos = faderPos(mix, top)
     const flash = useChangedFlash('crossfade')
     const mixLocked = useStore(appStore, (s) => s.locks.mix)
+    const selected = useStore(uiStore, (s) => s.selected === 'crossfade')
 
     // Amber marker rides the live value while the mix oscillates
     useFrame(() => {
@@ -204,13 +201,14 @@ function Crossfader() {
         : `Source ${topL} is on top in ${blendName} mode: toward ${topL} blends it in fully, the other end shows the other source alone`
 
     return (
-        <section aria-label={mixLocked ? 'Crossfader (locked)' : 'Crossfader'} className={cn('flex min-w-[232px] min-[1280px]:min-w-[272px] min-[1400px]:min-w-[300px] flex-1 flex-col justify-between gap-2 rounded-md bg-rack/60 px-3 py-2', flash && 'strip-flash', mixLocked && LOCKED)}>
+        <section aria-label={mixLocked ? 'Crossfader (locked)' : 'Crossfader'} className={cn(stripClass(selected, 'crossfade', 'min-w-[196px] flex-1 justify-between px-3 min-[1280px]:min-w-[272px] min-[1400px]:min-w-[300px]', flash), mixLocked && LOCKED)}>
             <div className="flex items-center justify-between gap-2">
                 <button
                     type="button"
-                    onClick={selectCrossfade}
-                    aria-label="Crossfade settings"
-                    title="Oscillation, shape and which source is on top"
+                    onClick={() => select('crossfade')}
+                    aria-pressed={selected}
+                    aria-label="Edit Crossfade"
+                    title="Blend, which source is on top, oscillation"
                     className="label -mx-1 rounded-sm px-1 transition-colors hover:bg-raised hover:text-ink"
                 >
                     Crossfade
@@ -224,9 +222,9 @@ function Crossfader() {
                         className="inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-xs font-medium text-dim transition-colors hover:bg-raised hover:text-ink"
                     >
                         <ArrowLeftRight size={13} aria-hidden="true" />
-                        {topL} on top{blendMode !== 'normal' && ` · ${blendName}`}
+                        {topL} on top
                     </button>
-                    <LockToggle lockKey="mix" what="Crossfade" />
+                    <LockToggle lockKey="mix" what="Crossfade and blend" />
                 </div>
             </div>
             <div className="flex items-center gap-2">
@@ -252,21 +250,22 @@ function Crossfader() {
             <p id="crossfader-desc" className="sr-only">{description}</p>
             <div className="flex items-center gap-1.5">
                 <Toggle pressed={mixOsc.on} onChange={(on) => setMixOsc({ on })}>Oscillate</Toggle>
+                {/* Narrow windows keep the rate in the Crossfade panel, so the blend stays readable */}
                 <Select
                     aria-label="Crossfade oscillation rate"
                     size="sm"
                     value={mixOsc.rate}
                     options={rateOptions()}
                     onChange={(rate) => setMixOsc({ rate })}
-                    className="min-w-0 flex-1"
+                    className="min-w-0 flex-1 max-[1279px]:hidden"
                 />
                 <Select
-                    aria-label="Crossfade oscillation shape"
+                    aria-label="Blend"
                     size="sm"
-                    value={mixOsc.shape}
-                    options={shapeOptions}
-                    onChange={(shape) => setMixOsc({ shape })}
-                    className="min-w-0 flex-1 max-[1279px]:hidden"
+                    value={blendMode}
+                    options={blendOptions}
+                    onChange={(mode) => { checkpoint('blend change'); setBlendMode(mode) }}
+                    className="min-w-0 flex-[1.4]"
                 />
             </div>
         </section>
@@ -292,7 +291,7 @@ function OverlayStrip() {
     const flash = useChangedFlash('overlay')
 
     return (
-        <section aria-label={overlay.hold ? 'Layer C (locked)' : 'Layer C'} className={cn(stripClass(selected, 'overlay', 'w-[124px] min-[1280px]:w-[132px]', flash), overlay.hold && LOCKED)}>
+        <section aria-label={overlay.hold ? 'Layer C (locked)' : 'Layer C'} className={cn(stripClass(selected, 'overlay', 'w-[112px] min-[1280px]:w-[132px]', flash), overlay.hold && LOCKED)}>
             <button type="button" onClick={() => select('overlay')} aria-pressed={selected} aria-label={`Edit Layer C (${content})`} className="flex flex-1 flex-col gap-2 text-left">
                 <span className="flex w-full items-center gap-2">
                     <LayerChip layer="overlay" />
@@ -331,27 +330,23 @@ function OverlayStrip() {
 }
 
 function MasterStrip() {
-    const blendMode = useStore(appStore, (s) => s.blendMode)
     const effects = useStore(appStore, (s) => s.masterEffects)
     const selected = useStore(uiStore, (s) => s.selected === 'master')
     const flash = useChangedFlash('master')
     const masterLocked = useStore(appStore, (s) => s.locks.blend)
 
     return (
-        <section aria-label={masterLocked ? 'Master (locked)' : 'Master'} className={cn(stripClass(selected, 'master', 'w-[168px] min-[1280px]:w-[184px] min-[1400px]:w-[200px]', flash), masterLocked && LOCKED)}>
+        <section aria-label={masterLocked ? 'Master (locked)' : 'Master'} className={cn(stripClass(selected, 'master', 'w-[140px] min-[1280px]:w-[160px] min-[1400px]:w-[176px]', flash), masterLocked && LOCKED)}>
             <div className="flex items-center gap-2">
                 <button type="button" onClick={() => select('master')} aria-pressed={selected} aria-label="Edit Master" className="flex flex-1 items-center gap-2 rounded-sm text-left">
                     <LayerChip layer="master" />
                     <span className="flex-1 text-[13px] font-medium">Master</span>
                 </button>
-                <LockToggle lockKey="blend" what="Master (blend and output effects)" />
+                <LockToggle lockKey="blend" what="Master output effects" />
             </div>
             <div className="flex flex-1 gap-2">
                 <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">
-                    <div className="space-y-1">
-                        <label id="blend-mode-label" htmlFor="blend-mode" className="label">Blend</label>
-                        <Select id="blend-mode" value={blendMode} options={blendOptions} onChange={(mode) => { checkpoint('blend change'); setBlendMode(mode) }} />
-                    </div>
+                    <p className="text-xs text-dim">After the blend, over everything</p>
                     <button
                         type="button"
                         onClick={() => select('master')}
@@ -372,7 +367,7 @@ export function Mixer({ className }: { className?: string }) {
         <footer className={cn('flex shrink-0 items-stretch gap-2 overflow-x-auto border-t border-line bg-panel p-2', className)}>
             {/* First in tab order, drawn last (right). One row at every width: narrow
                 windows scroll the strips under it while it stays pinned in view */}
-            <MoshCluster id="mosh" className="sticky right-0 z-10 order-last w-[212px] shrink-0 bg-panel min-[1400px]:w-[300px] max-[1279px]:-my-2 max-[1279px]:-mr-2 max-[1279px]:border-l max-[1279px]:border-line max-[1279px]:p-2 max-[1279px]:shadow-[-12px_0_16px_-8px_oklch(0_0_0/0.5)]" />
+            <MoshCluster id="mosh" className="sticky right-0 z-10 order-last w-[184px] shrink-0 min-[1280px]:w-[212px] bg-panel min-[1400px]:w-[300px] max-[1279px]:-my-2 max-[1279px]:-mr-2 max-[1279px]:border-l max-[1279px]:border-line max-[1279px]:p-2 max-[1279px]:shadow-[-12px_0_16px_-8px_oklch(0_0_0/0.5)]" />
             <SourceStrip id="videoA" />
             <Crossfader />
             <SourceStrip id="videoB" />

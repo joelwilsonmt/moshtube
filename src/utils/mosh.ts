@@ -61,7 +61,8 @@ const sourceChange = (id: SourceId): Change => {
 function moshMix(): Change[] {
     const { locks } = appStore.getState()
     const parts: Change[] = []
-    if (!locks.blend) {
+    // The crossfade lock covers the blend too ('mix' in the URL); Master's covers output
+    if (!locks.mix) {
         const before = appStore.getState().blendMode
         const mode = pick(BlendModeSchema.options)
         setBlendMode(mode)
@@ -76,7 +77,7 @@ function moshMix(): Change[] {
     return parts
 }
 
-// Output effects ride with the blend under the Master lock
+// Output effects sit under the Master lock ('blend' in the URL, kept for old links)
 function moshOutput(): Change {
     if (appStore.getState().locks.blend) return null
     // With Layer C on, skip output effects that flatten everything, so the videos stay readable
