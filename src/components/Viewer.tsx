@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Link2, Maximize, SlidersHorizontal, Sparkles } from 'lucide-react'
+import { Link2, Maximize, SlidersHorizontal } from 'lucide-react'
 import { appStore, setOutputPlaying } from '../store/appStore'
 import { enterMixer } from '../store/uiStore'
 import { moshMeDaddy } from '../utils/mosh'
@@ -8,12 +8,14 @@ import { useMediaQuery } from '../hooks/useLive'
 import { COMPACT_QUERY } from '../utils/config'
 import { copyLink, PlayToggle, StatusLine, Wordmark } from './TopBar'
 import { Button, IconButton, Kbd } from './ui/core'
+import { DaddyIcon, useDropPending } from './MoshCluster'
 
 // What a shared link opens: the mix itself, one button to remix it on the spot, and a way
 // in to the mixer.
 // The controls stay put; only fullscreen hides them when idle.
 export function ViewerView() {
     const compact = useMediaQuery(COMPACT_QUERY)
+    const pending = useDropPending()
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return
@@ -36,24 +38,26 @@ export function ViewerView() {
 
             <header className="absolute left-3 top-3 z-10 flex items-center gap-3 rounded-md border border-line bg-panel/85 px-3 py-2 backdrop-blur">
                 <h1><Wordmark /></h1>
-                <span className="text-[13px] text-dim">A shared mix</span>
-                {/* Screen readers hear what each mosh changed */}
-                <StatusLine className="sr-only" />
+                <span className="text-[13px] text-dim">{compact ? 'A shared mix' : 'A shared mix · tap the video to mosh it'}</span>
             </header>
 
-            <div className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-lg border border-line bg-panel/90 p-2 shadow-[0_8px_24px_oklch(0_0_0/0.5)] backdrop-blur">
-                <PlayToggle keyHint={!compact} className="h-11 w-11" />
-                <Button variant="primary" onClick={moshMeDaddy} aria-label="Mosh Me Daddy" aria-keyshortcuts="3" className="h-11 whitespace-nowrap px-5 text-[14px] font-semibold">
-                    <Sparkles size={17} aria-hidden="true" />
-                    Mosh Me Daddy
-                    {!compact && <Kbd>3</Kbd>}
-                </Button>
-                <Button onClick={enterMixer} className={compact ? 'h-11 w-11 px-0' : 'h-11 whitespace-nowrap'}>
-                    <SlidersHorizontal size={16} aria-hidden="true" />
-                    <span className={compact ? 'sr-only' : undefined}>Remix this</span>
-                </Button>
-                <IconButton icon={Link2} label="Copy link to this mix" onClick={copyLink} className="h-11 w-11" />
-                <IconButton icon={Maximize} label="Fullscreen (F)" onClick={toggleStageFullscreen} className="h-11 w-11 max-md:hidden" />
+            <div className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-10 flex max-w-[calc(100%-1.5rem)] -translate-x-1/2 flex-col items-center gap-2">
+                {/* What the last mosh or copy did, above the controls */}
+                <StatusLine className="max-w-full rounded-md bg-panel/90 px-3 py-1.5 backdrop-blur" />
+                <div className="flex items-center gap-2 rounded-lg border border-line bg-panel/90 p-2 shadow-[0_8px_24px_oklch(0_0_0/0.5)] backdrop-blur">
+                    <PlayToggle keyHint={!compact} className="h-11 w-11" />
+                    <Button variant="primary" onClick={moshMeDaddy} aria-label="Mosh Me Daddy" aria-busy={pending} aria-keyshortcuts="3" className="h-11 whitespace-nowrap px-5 text-[14px] font-semibold">
+                        <DaddyIcon size={17} />
+                        Mosh Me Daddy
+                        {!compact && <Kbd>3</Kbd>}
+                    </Button>
+                    <Button onClick={enterMixer} className={compact ? 'h-11 w-11 px-0' : 'h-11 whitespace-nowrap'}>
+                        <SlidersHorizontal size={16} aria-hidden="true" />
+                        <span className={compact ? 'sr-only' : undefined}>Remix this</span>
+                    </Button>
+                    <IconButton icon={Link2} label="Copy link to this mix" onClick={copyLink} className="h-11 w-11" />
+                    <IconButton icon={Maximize} label="Fullscreen (F)" onClick={toggleStageFullscreen} className="h-11 w-11 max-md:hidden" />
+                </div>
             </div>
         </div>
     )

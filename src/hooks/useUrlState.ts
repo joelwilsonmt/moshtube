@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { appStore } from '../store/appStore'
-import { serializeState, deserializeState } from '../utils/serialization'
+import { LOCK_PARAMS, serializeState, deserializeState } from '../utils/serialization'
 import { rollFreshMix } from '../utils/mosh'
 import { uiStore } from '../store/uiStore'
 
@@ -12,6 +12,8 @@ export function hydrateFromUrl() {
     rollFreshMix()
     return
   }
+  // Links copied before locks were stripped still carry them
+  if (params.has('view')) LOCK_PARAMS.forEach((p) => params.delete(p))
   appStore.setState((prev) => ({ ...prev, ...deserializeState(params) }))
 }
 

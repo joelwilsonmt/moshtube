@@ -1,12 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useStore } from 'zustand'
 import { createStore } from 'zustand/vanilla'
-import { Minimize, SlidersHorizontal, Sparkles } from 'lucide-react'
+import { Minimize, SlidersHorizontal } from 'lucide-react'
 import { enterMixer, uiStore } from '../store/uiStore'
 import { useIdle } from '../hooks/useLive'
 import { moshMeDaddy } from '../utils/mosh'
 import { Stage } from './Stage'
-import { MoshCluster } from './MoshCluster'
+import { DaddyIcon, MoshCluster } from './MoshCluster'
 import { PlayToggle } from './TopBar'
 import { Button, cn, IconButton } from './ui/core'
 
@@ -57,7 +57,7 @@ function FullscreenPill() {
             {viewer ? (
                 <>
                     <Button variant="primary" onClick={moshMeDaddy} className="whitespace-nowrap">
-                        <Sparkles size={15} aria-hidden="true" />
+                        <DaddyIcon size={15} />
                         Mosh Me Daddy
                     </Button>
                     <Button onClick={() => { void document.exitFullscreen(); enterMixer() }} className="whitespace-nowrap">

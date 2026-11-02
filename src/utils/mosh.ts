@@ -1,3 +1,4 @@
+import { createStore } from 'zustand/vanilla'
 import { appStore, updateVideoState, setBlendMode, setMix, setMixOsc, setOverlay } from '../store/appStore'
 import { checkpoint, historyStore, onRestore, withoutHistory } from '../store/history'
 import { announce, flashChanged } from '../store/uiStore'
@@ -124,10 +125,13 @@ export const moshEverything = () => {
 // in, so effects never play over the outgoing clips first
 const DROP_MAX_MS = 15_000
 let drop: { ids: SourceId[]; look: () => Change[]; stop: () => void } | null = null
+// Lets every Mosh Me Daddy button show that a drop is on its way
+export const dropStore = createStore(() => ({ pending: false }))
 
 function cancelDrop() {
     drop?.stop()
     drop = null
+    dropStore.setState({ pending: false })
 }
 // Undo, or any hand edit, during the wait means the user has taken over
 historyStore.subscribe(cancelDrop)
@@ -162,6 +166,7 @@ export const moshMeDaddy = () => {
     const unsubSwap = swapStore.subscribe(check)
     const unsubError = videoErrorStore.subscribe(check)
     drop = { ids: unlocked, look, stop: () => { clearTimeout(timer); unsubSwap(); unsubError() } }
+    dropStore.setState({ pending: true })
 }
 
 // A first visit opens on a happy accident instead of a fixed default pair

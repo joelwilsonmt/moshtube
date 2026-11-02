@@ -7,6 +7,7 @@ import { announce, uiStore } from '../store/uiStore'
 import { Button, IconButton } from './ui/core'
 import { ShortcutsButton, Tempo } from './Tempo'
 import { PresetsMenu } from './Library'
+import { LOCK_PARAMS } from '../utils/serialization'
 import { MidiMenu, PopOutButton } from './Live'
 
 const STATUS_MS = 7000
@@ -47,6 +48,7 @@ export async function copyLink() {
         // Recipients land in the viewer first, with a Remix button into the mixer
         const url = new URL(window.location.href)
         url.searchParams.set('view', '1')
+        LOCK_PARAMS.forEach((p) => url.searchParams.delete(p))
         await navigator.clipboard.writeText(url.toString())
         announce('Link copied. It opens this exact mix, with a button to remix it.')
     } catch {
