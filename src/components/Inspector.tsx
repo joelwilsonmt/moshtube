@@ -324,7 +324,7 @@ function OverlayInspector() {
     )
 }
 
-function MasterBlend() {
+function BlendSettings() {
     const blendMode = useStore(appStore, (s) => s.blendMode)
     return (
         <Section title="Blend">
@@ -338,30 +338,34 @@ function MasterBlend() {
     )
 }
 
-// The crossfader's settings beyond the fader itself; the strip keeps only the live controls
+// How A and B combine beyond the fader itself; the strip keeps the live controls
 function CrossfadeSettings() {
     const mixOsc = useStore(appStore, (s) => s.mixOsc)
     const top = useStore(appStore, (s) => s.activeOverlay)
     const topL = LAYER[top].letter
     return (
-        <Section title="Crossfade" id="crossfade-settings">
-            <Segmented
-                label="Source on top"
-                value={top}
-                options={[{ value: 'videoA', label: 'A on top' }, { value: 'videoB', label: 'B on top' }]}
-                onChange={(next) => { if (next !== top) { checkpoint('layer swap'); swapLayers() } }}
-            />
-            <p className="-mt-1 text-xs text-dim">The blend lays {topL} over the other source; the fader sets how much of {topL} comes through.</p>
-            <Toggle pressed={mixOsc.on} onChange={(on) => setMixOsc({ on })}>Oscillate the crossfade</Toggle>
-            <div className="grid grid-cols-2 gap-2">
-                <Field label="Rate">
-                    {(fieldId) => <Select id={fieldId} value={mixOsc.rate} options={rateOptions()} onChange={(rate) => setMixOsc({ rate })} />}
-                </Field>
-                <Field label="Shape">
-                    {(fieldId) => <Select id={fieldId} value={mixOsc.shape} options={shapeOptions} onChange={(shape) => setMixOsc({ shape })} />}
-                </Field>
-            </div>
-        </Section>
+        <>
+            <Section title="Layers">
+                <Segmented
+                    label="Source on top"
+                    value={top}
+                    options={[{ value: 'videoA', label: 'A on top' }, { value: 'videoB', label: 'B on top' }]}
+                    onChange={(next) => { if (next !== top) { checkpoint('layer swap'); swapLayers() } }}
+                />
+                <p className="-mt-1 text-xs text-dim">The blend lays {topL} over the other source; the fader sets how much of {topL} comes through.</p>
+            </Section>
+            <Section title="Oscillation">
+                <Toggle pressed={mixOsc.on} onChange={(on) => setMixOsc({ on })}>Oscillate the crossfade</Toggle>
+                <div className="grid grid-cols-2 gap-2">
+                    <Field label="Rate">
+                        {(fieldId) => <Select id={fieldId} value={mixOsc.rate} options={rateOptions()} onChange={(rate) => setMixOsc({ rate })} />}
+                    </Field>
+                    <Field label="Shape">
+                        {(fieldId) => <Select id={fieldId} value={mixOsc.shape} options={shapeOptions} onChange={(shape) => setMixOsc({ shape })} />}
+                    </Field>
+                </div>
+            </Section>
+        </>
     )
 }
 
@@ -376,14 +380,15 @@ export function Inspector() {
             <div className="min-h-0 flex-1 overflow-y-auto">
                 {selected === 'overlay' ? (
                     <OverlayInspector />
-                ) : selected === 'master' ? (
+                ) : selected === 'crossfade' ? (
                     <>
-                        <MasterBlend />
+                        <BlendSettings />
                         <CrossfadeSettings />
-                        <Section title="Output effects">
-                            <EffectStack target="master" />
-                        </Section>
                     </>
+                ) : selected === 'master' ? (
+                    <Section title="Output effects">
+                        <EffectStack target="master" />
+                    </Section>
                 ) : (
                     <SourceInspector key={selected} id={selected} />
                 )}

@@ -47,7 +47,7 @@ export function MoshCluster({ compact = false, className, id }: { compact?: bool
                 aria-keyshortcuts="3"
                 className={cn(
                     'flex items-center gap-2 rounded-md bg-signal px-3 text-left font-semibold text-signal-ink transition-[filter] duration-150 hover:brightness-110 active:brightness-95',
-                    compact ? 'h-9 text-[13px]' : 'h-12 text-[15px]'
+                    compact ? 'h-9 text-[13px]' : 'h-12 text-[14px] max-[1279px]:gap-1.5 max-[1279px]:px-2.5 min-[1280px]:text-[15px]'
                 )}
             >
                 <DaddyIcon size={compact ? 15 : 17} />
