@@ -1,5 +1,6 @@
-import { Shuffle, Sparkles, Zap } from 'lucide-react'
-import { moshEverything, moshGlobal, moshMeDaddy } from '../utils/mosh'
+import { useStore } from 'zustand'
+import { LoaderCircle, Shuffle, Sparkles, Zap } from 'lucide-react'
+import { dropStore, moshEverything, moshGlobal, moshMeDaddy } from '../utils/mosh'
 import { cn, Kbd } from './ui/core'
 
 const TIERS = [
@@ -7,8 +8,18 @@ const TIERS = [
     { key: '2', label: 'Mosh Everything', hint: 'Effects + mix', icon: Shuffle, run: moshEverything },
 ] as const
 
+export const useDropPending = () => useStore(dropStore, (s) => s.pending)
+
+// Mosh Me Daddy's glyph: spins while the new videos load and the drop is held
+export function DaddyIcon({ size }: { size: number }) {
+    const pending = useDropPending()
+    const Icon = pending ? LoaderCircle : Sparkles
+    return <Icon size={size} aria-hidden="true" className={cn('shrink-0', pending && 'animate-spin motion-reduce:animate-none')} />
+}
+
 // The three randomizers, always in this order, wherever they appear
 export function MoshCluster({ compact = false, className, id }: { compact?: boolean; className?: string; id?: string }) {
+    const pending = useDropPending()
     return (
         <div id={id} tabIndex={id ? -1 : undefined} className={cn('flex gap-1.5 focus:outline-none', compact ? 'flex-row items-center' : 'flex-col', className)}>
             {TIERS.map(({ key, label, hint, icon: Icon, run }) => (
@@ -32,13 +43,14 @@ export function MoshCluster({ compact = false, className, id }: { compact?: bool
                 onClick={moshMeDaddy}
                 title="New videos, effects, blend and mix (3)"
                 aria-label="Mosh Me Daddy"
+                aria-busy={pending}
                 aria-keyshortcuts="3"
                 className={cn(
                     'flex items-center gap-2 rounded-md bg-signal px-3 text-left font-semibold text-signal-ink transition-[filter] duration-150 hover:brightness-110 active:brightness-95',
                     compact ? 'h-9 text-[13px]' : 'h-12 text-[15px]'
                 )}
             >
-                <Sparkles size={compact ? 15 : 17} aria-hidden="true" className="shrink-0" />
+                <DaddyIcon size={compact ? 15 : 17} />
                 <span className="whitespace-nowrap">Mosh Me Daddy</span>
                 {!compact && <span className="ml-auto whitespace-nowrap pl-3 text-xs font-medium opacity-80 max-[1399px]:sr-only">New videos + all</span>}
                 <Kbd>3</Kbd>

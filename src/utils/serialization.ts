@@ -116,6 +116,10 @@ function deserializeVideo(params: URLSearchParams, p: 'a' | 'b', base: VideoStat
   return v
 }
 
+// Locks are the sender's own working setup; a shared link carries only the look, so the
+// recipient's randomizers aren't quietly muted
+export const LOCK_PARAMS = ['a_hold', 'b_hold', 'c_hold', 'lock']
+
 export function deserializeState(params: URLSearchParams): Partial<AppState> {
   const blend = BlendModeSchema.safeParse(params.get('blend'))
   const overlay = AppStateSchema.shape.activeOverlay.safeParse(params.get('overlay'))

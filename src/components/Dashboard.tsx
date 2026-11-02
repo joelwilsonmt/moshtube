@@ -1,5 +1,5 @@
 import { useStore } from 'zustand'
-import { Link2, Sparkles, Undo2 } from 'lucide-react'
+import { Link2, Undo2 } from 'lucide-react'
 import { historyStore, undo } from '../store/history'
 import { uiStore } from '../store/uiStore'
 import { useMediaQuery } from '../hooks/useLive'
@@ -12,6 +12,7 @@ import { ViewerView } from './Viewer'
 import { copyLink, PlayToggle, StatusLine, TopBar, Wordmark } from './TopBar'
 import { Inspector } from './Inspector'
 import { Mixer } from './Mixer'
+import { DaddyIcon, useDropPending } from './MoshCluster'
 import { Button, IconButton } from './ui/core'
 
 function DesktopView() {
@@ -38,6 +39,7 @@ function DesktopView() {
 // Phones get the output and the one button that matters
 function MobileView() {
     const canUndo = useStore(historyStore, (h) => h.past.length > 0)
+    const pending = useDropPending()
     return (
         <div className="flex min-h-[100dvh] flex-col">
             <header className="flex h-12 items-center justify-between border-b border-line bg-panel px-4">
@@ -52,8 +54,8 @@ function MobileView() {
             <div className="flex flex-col gap-3 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
                 <StatusLine full className="min-h-5" />
                 <div className="flex gap-2">
-                    <Button variant="primary" onClick={moshMeDaddy} className="h-12 flex-1 text-[15px]">
-                        <Sparkles size={17} aria-hidden="true" />
+                    <Button variant="primary" onClick={moshMeDaddy} aria-busy={pending} className="h-12 flex-1 text-[15px]">
+                        <DaddyIcon size={17} />
                         Mosh Me Daddy
                     </Button>
                     <PlayToggle keyHint={false} className="h-12 w-12 border border-edge" />
